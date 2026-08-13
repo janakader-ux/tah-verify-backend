@@ -754,7 +754,7 @@ def list_applications(passcode: str = Query(...)):
     return [row_to_dict(r, columns) for r in cur.fetchall()]
 
 
-@app.delete("/api/applications/{case_ref}")
+@app.delete("/api/applications/{case_ref:path}")
 def delete_application(case_ref: str, passcode: str = Query(...)):
     """Staff-only: permanently remove a single application record. Used to
     clean up test/demo submissions from the dashboard. There is no undo."""

@@ -754,6 +754,19 @@ def list_applications(passcode: str = Query(...)):
     return [row_to_dict(r, columns) for r in cur.fetchall()]
 
 
+@app.delete("/api/applications/{case_ref}")
+def delete_application(case_ref: str, passcode: str = Query(...)):
+    """Staff-only: permanently remove a single application record. Used to
+    clean up test/demo submissions from the dashboard. There is no undo."""
+    require_staff_passcode(passcode)
+    record = get_application(case_ref)
+    if not record:
+        raise HTTPException(404, "Application not found")
+    db.execute("DELETE FROM applications WHERE case_ref = ?", [case_ref])
+    db.commit()
+    return {"deleted": True, "case_ref": case_ref}
+
+
 if __name__ == "__main__":
     import uvicorn
 

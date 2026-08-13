@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: tah-verify-backend
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api_server:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: tah-verify-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DB_PATH
+        value: /var/data/data.db
+      - key: STAFF_PASSCODE
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: NOTIFICATION_EMAIL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: TRUSTID_SERVER
+        sync: false
+      - key: TRUSTID_USERNAME
+        sync: false
+      - key: TRUSTID_PASSWORD
+        sync: false
+      - key: TRUSTID_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGIN_REGEX
+        sync: false

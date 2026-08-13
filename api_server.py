@@ -6,11 +6,15 @@ Handles:
   - Storing wizard applications (case reference, applicant details, fee, route)
   - Storing in-person appointment requests (office / date / time preference)
   - Creating SumUp Hosted Checkout payment links + polling payment status
-  - A scaffolded TrustID verification module (NOT live yet — see trustid_client.py)
+  - TrustID Guest Link verification (see trustid_client.py) — fires
+    AUTOMATICALLY the moment payment is confirmed as paid for the "online"
+    route (see _refresh_payment_status below); the staff-only
+    /api/applications/{case_ref}/verification endpoint remains available as a
+    manual retry if the automatic attempt errors (e.g. TrustID temporarily
+    unreachable) or a link needs to be re-sent.
   - A lightweight passcode-protected staff view listing applications and their
     payment / verification status, so staff know when to manually:
-      1) trigger a TrustID Guest Link (until API creds are confirmed) for the
-         online route, or confirm an appointment slot for the in-person route, and
+      1) confirm an appointment slot for the in-person route, and
       2) enter the verified director/PSC details into the Companies House /
          GOV.UK portal (Companies House has no public API for this step).
 
@@ -175,6 +179,22 @@ for _col, _decl in [
     ("appointment_time_pref", "TEXT"),
     ("payment_provider", "TEXT"),
     ("access_token", "TEXT"),
+    ("role", "TEXT"),
+    ("former_names", "TEXT"),
+    ("dob", "TEXT"),
+    ("nationality", "TEXT"),
+    ("residence_country", "TEXT"),
+    ("home_address", "TEXT"),
+    ("address_since", "TEXT"),
+    ("previous_address", "TEXT"),
+    ("mobile", "TEXT"),
+    ("company_name", "TEXT"),
+    ("company_number", "TEXT"),
+    ("role_confirm", "TEXT"),
+    ("sign_name", "TEXT"),
+    ("sign_date", "TEXT"),
+    ("sign_ip", "TEXT"),
+    ("signature_data", "TEXT"),
 ]:
     if _col not in _existing_cols:
         db.execute(f"ALTER TABLE applications ADD COLUMN {_col} {_decl}")
@@ -228,6 +248,32 @@ class ApplicationIn(BaseModel):
     appointment_office: Optional[str] = None  # 'london' | 'bedford'
     appointment_date: Optional[str] = None
     appointment_time_pref: Optional[str] = None
+    # The wizard's "Your situation" / "Personal details" / "Company details" /
+    # "Engagement letter" steps collect all of the fields below and show them
+    # back to the applicant on the review screen (step 6), but until now the
+    # frontend never actually sent them to this endpoint — only full_name,
+    # first_name, last_name, email, residency, fee_amount, route made it here.
+    # Everything else (role, DOB, nationality, address, mobile, company name/
+    # number, and the signed engagement letter's name/date/IP/image) was
+    # silently dropped, so staff never received it in the notification email
+    # or the staff dashboard. All are optional here so older/partial payloads
+    # never break, but the frontend now sends all of them (see apply.js).
+    role: Optional[str] = None
+    former_names: Optional[str] = None
+    dob: Optional[str] = None
+    nationality: Optional[str] = None
+    residence_country: Optional[str] = None
+    home_address: Optional[str] = None
+    address_since: Optional[str] = None
+    previous_address: Optional[str] = None
+    mobile: Optional[str] = None
+    company_name: Optional[str] = None
+    company_number: Optional[str] = None
+    role_confirm: Optional[str] = None
+    sign_name: Optional[str] = None
+    sign_date: Optional[str] = None
+    sign_ip: Optional[str] = None
+    signature_data: Optional[str] = None  # base64 PNG data URL from the signature pad
 
 
 class VerificationTrigger(BaseModel):
@@ -395,23 +441,36 @@ def create_application(app_in: ApplicationIn):
         db.execute(
             """UPDATE applications SET full_name=?, first_name=?, last_name=?, email=?, residency=?,
                fee_amount=?, route=?, appointment_type=?, appointment_office=?, appointment_date=?,
-               appointment_time_pref=?, updated_at=? WHERE case_ref=?""",
+               appointment_time_pref=?, role=?, former_names=?, dob=?, nationality=?, residence_country=?,
+               home_address=?, address_since=?, previous_address=?, mobile=?, company_name=?,
+               company_number=?, role_confirm=?, sign_name=?, sign_date=?, sign_ip=?, signature_data=?,
+               updated_at=? WHERE case_ref=?""",
             [
                 app_in.full_name, app_in.first_name, app_in.last_name, app_in.email, app_in.residency,
                 app_in.fee_amount, app_in.route, app_in.appointment_type, app_in.appointment_office,
-                app_in.appointment_date, app_in.appointment_time_pref, now, app_in.case_ref,
+                app_in.appointment_date, app_in.appointment_time_pref, app_in.role, app_in.former_names,
+                app_in.dob, app_in.nationality, app_in.residence_country, app_in.home_address,
+                app_in.address_since, app_in.previous_address, app_in.mobile, app_in.company_name,
+                app_in.company_number, app_in.role_confirm, app_in.sign_name, app_in.sign_date,
+                app_in.sign_ip, app_in.signature_data, now, app_in.case_ref,
             ],
         )
     else:
         db.execute(
             """INSERT INTO applications (case_ref, full_name, first_name, last_name, email, residency,
                fee_amount, route, appointment_type, appointment_office, appointment_date,
-               appointment_time_pref, updated_at, access_token)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               appointment_time_pref, role, former_names, dob, nationality, residence_country,
+               home_address, address_since, previous_address, mobile, company_name, company_number,
+               role_confirm, sign_name, sign_date, sign_ip, signature_data, updated_at, access_token)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 app_in.case_ref, app_in.full_name, app_in.first_name, app_in.last_name, app_in.email,
                 app_in.residency, app_in.fee_amount, app_in.route, app_in.appointment_type,
-                app_in.appointment_office, app_in.appointment_date, app_in.appointment_time_pref, now,
+                app_in.appointment_office, app_in.appointment_date, app_in.appointment_time_pref,
+                app_in.role, app_in.former_names, app_in.dob, app_in.nationality, app_in.residence_country,
+                app_in.home_address, app_in.address_since, app_in.previous_address, app_in.mobile,
+                app_in.company_name, app_in.company_number, app_in.role_confirm, app_in.sign_name,
+                app_in.sign_date, app_in.sign_ip, app_in.signature_data, now,
                 secrets.token_urlsafe(24),
             ],
         )
@@ -431,16 +490,40 @@ def mark_submitted(case_ref: str, token: str = Query(...)):
     )
     db.commit()
     updated = get_application(case_ref)
+    # Previously this notification only ever carried full_name / email / fee /
+    # route — every other field the wizard actually collects (role, DOB,
+    # nationality, addresses, mobile, company name/number, and the signed
+    # engagement letter's name/date/IP) was captured on screen but never sent
+    # to this backend at all, so staff never received it anywhere. Now that
+    # apply.js sends the full payload and create_application() persists it,
+    # surface all of it here so staff have everything needed to process the
+    # case without digging through the raw database.
+    fields = {
+        "Case reference": case_ref,
+        "Applicant": updated.get("full_name") or "",
+        "Role": updated.get("role") or "",
+        "Former name(s)": updated.get("former_names") or "None",
+        "Date of birth": updated.get("dob") or "",
+        "Nationality": updated.get("nationality") or "",
+        "Country of residence": updated.get("residence_country") or "",
+        "Home address": updated.get("home_address") or "",
+        "At address since": updated.get("address_since") or "",
+        "Previous address": updated.get("previous_address") or "N/A",
+        "Email": updated.get("email") or "",
+        "Mobile": updated.get("mobile") or "",
+        "Company name": updated.get("company_name") or "",
+        "Company number": updated.get("company_number") or "",
+        "Role (confirmed)": updated.get("role_confirm") or "",
+        "Fee": f"£{updated.get('fee_amount')}" if updated.get("fee_amount") else "",
+        "Verification route": updated.get("route") or "",
+        "Engagement letter signed by": updated.get("sign_name") or "",
+        "Signed on": updated.get("sign_date") or "",
+        "Signing IP (audit trail)": updated.get("sign_ip") or "Not available",
+        "Signature captured": "Yes" if updated.get("signature_data") else "No",
+    }
     send_notification_email(
         f"New ACSP ID verification application — Case {case_ref}",
-        {
-            "Case reference": case_ref,
-            "Applicant": updated.get("full_name") or "",
-            "Email": updated.get("email") or "",
-            "Company": updated.get("route") or "",
-            "Fee": f"£{updated.get('fee_amount')}" if updated.get("fee_amount") else "",
-            "Verification route": updated.get("route") or "",
-        },
+        fields,
         intro="A new ACSP identity verification application has been submitted and the engagement letter signed. Payment is next.",
     )
     return updated
@@ -613,6 +696,38 @@ def _refresh_payment_status(case_ref: str):
         # First time we've observed this checkout as paid — fire our own
         # reliable notification. This is independent of whatever the payment
         # provider's own merchant-account receipt email does or doesn't do.
+        #
+        # IMPORTANT: for the "online" route this used to ONLY send staff an
+        # email asking them to go create the TrustID Guest Link by hand —
+        # despite TRUSTID_SERVER/USERNAME/PASSWORD/API_KEY being fully
+        # configured and working, the actual trustid_client.create_guest_link()
+        # call was never wired in here, so "automatic" TrustID never actually
+        # ran on payment; only the separate, staff-triggered
+        # /api/applications/{case_ref}/verification endpoint called it. Now
+        # that call happens for real, right here, the moment payment clears.
+        verification_intro = None
+        if record.get("route") == "online":
+            result = trustid_client.create_guest_link(
+                first_name=record.get("first_name") or (record.get("full_name") or "").split(" ")[0],
+                last_name=record.get("last_name") or " ".join((record.get("full_name") or "").split(" ")[1:]),
+                email=record.get("email"),
+                reference=case_ref,
+            )
+            db.execute(
+                "UPDATE applications SET verification_status=?, verification_notes=?, updated_at=? WHERE case_ref=?",
+                [result["status"], result["notes"], time.strftime("%Y-%m-%d %H:%M:%S"), case_ref],
+            )
+            db.commit()
+            if result["status"] == "link_sent":
+                verification_intro = "Payment has been received and TrustID has automatically emailed the applicant their identity verification Guest Link — no staff action needed unless they report an issue."
+            else:
+                verification_intro = (
+                    "Payment has been received. Automatic TrustID Guest Link creation did NOT succeed "
+                    f"(status: {result['status']}) — {result['notes']}"
+                )
+        else:
+            verification_intro = "Payment has been received. The applicant will request an in-person appointment next."
+
         send_notification_email(
             f"Payment received — Case {case_ref}",
             {
@@ -622,11 +737,7 @@ def _refresh_payment_status(case_ref: str):
                 "Fee": f"£{record.get('fee_amount')}" if record.get("fee_amount") else "",
                 "Verification route": record.get("route") or "",
             },
-            intro=(
-                "Payment has been received. Please initiate the TrustID guest link for this applicant."
-                if record.get("route") == "online"
-                else "Payment has been received. The applicant will request an in-person appointment next."
-            ),
+            intro=verification_intro,
         )
 
     return {"payment_status": mapped, "raw_status": status}

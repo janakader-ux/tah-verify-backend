@@ -865,6 +865,43 @@ def list_applications(passcode: str = Query(...)):
     return [row_to_dict(r, columns) for r in cur.fetchall()]
 
 
+@app.post("/api/diagnostics/reconcile-payments")
+def reconcile_payments(passcode: str = Query(...)):
+    """Safety net for the automatic TrustID trigger.
+
+    _refresh_payment_status() (which fires TrustID the moment a payment is
+    seen as paid) is normally invoked by the APPLICANT's own browser polling
+    /payment-status every 6 seconds after they open the Stripe/SumUp payment
+    link in a new tab. That works for the normal flow, but there is no real
+    payment-provider webhook wired in, so if an applicant closes their
+    original tab before the poll catches the paid status (and never returns
+    to click "I've paid - check status"), nothing else ever re-checks that
+    payment - it would sit as 'pending' forever and TrustID would never fire.
+
+    This endpoint is that missing re-check: it re-runs the same authoritative
+    _refresh_payment_status() lookup (direct to Stripe/SumUp, never trusting
+    client input) for every application that still has payment_status !=
+    'paid' but does have a payment_checkout_id (i.e. a payment link was
+    created). Safe to call any time / repeatedly - it is a no-op for
+    anything already paid or that never got a checkout started, and reuses
+    the exact same paid-transition logic (including the automatic TrustID
+    call) as the applicant-facing endpoint.
+    """
+    require_staff_passcode(passcode)
+    cur = db.execute(
+        "SELECT case_ref FROM applications WHERE payment_status != 'paid' AND payment_checkout_id IS NOT NULL AND payment_checkout_id != ''"
+    )
+    case_refs = [r[0] for r in cur.fetchall()]
+    checked = []
+    for case_ref in case_refs:
+        try:
+            result = _refresh_payment_status(case_ref)
+            checked.append({"case_ref": case_ref, "payment_status": result.get("payment_status")})
+        except Exception as exc:  # noqa: BLE001 - one bad record must not block the rest
+            checked.append({"case_ref": case_ref, "error": str(exc)})
+    return {"checked_count": len(checked), "results": checked}
+
+
 @app.delete("/api/applications/{case_ref:path}")
 def delete_application(case_ref: str, passcode: str = Query(...)):
     """Staff-only: permanently remove a single application record. Used to

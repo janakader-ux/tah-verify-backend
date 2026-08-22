@@ -84,6 +84,7 @@ import sqlite3
 import time
 import uuid
 from hmac import compare_digest
+from html import escape as html_escape
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -307,31 +308,34 @@ def require_case_token(record: dict, token: Optional[str]) -> None:
         raise HTTPException(403, "Invalid or missing access token for this case reference")
 
 
-def send_notification_email(subject: str, fields: dict, intro: str = "") -> bool:
-    """Send a staff notification email via Brevo's transactional email API.
+def _brevo_send(to_email: str, subject: str, html: str, kind: str = "Notification") -> bool:
+    """Low-level Brevo transactional send. Shared by the staff notification
+    emails and the applicant-facing confirmation email.
 
     Best-effort: never raises. Returns True on confirmed send, False
     otherwise (and logs the reason) so callers can proceed regardless —
     the database record is always the source of truth even if the email
     fails to send.
+
+    NOTE ON DELIVERABILITY: a Brevo 2xx here means Brevo *accepted* the
+    message, NOT that it was delivered. In August 2026 a real "Payment
+    received" notification was accepted and then soft-bounced with
+    "550-5.7.26 Unauthenticated email from taxandaccountinghub.com is not
+    accepted due to domain's DMARC policy" — so a payment was taken and
+    staff were never told. The cause was sending as an address on a domain
+    Brevo was not authorised for. Keep BREVO_SENDER_EMAIL on a domain whose
+    SPF/DKIM are set up in Brevo (currently notifications@directorpersonalcode.uk);
+    a True return from this function is not by itself proof of delivery.
     """
     if not BREVO_API_KEY:
-        logger.warning("Notification email skipped (BREVO_API_KEY not configured): %s", subject)
+        logger.warning("%s email skipped (BREVO_API_KEY not configured): %s", kind, subject)
         return False
-    rows_html = "".join(
-        f"<tr><td style='padding:4px 10px;color:#666;font-family:sans-serif;font-size:13px;"
-        f"vertical-align:top;white-space:nowrap;'>{k}</td>"
-        f"<td style='padding:4px 10px;font-family:sans-serif;font-size:13px;'>{v}</td></tr>"
-        for k, v in fields.items()
-    )
-    html = (
-        "<div style='font-family:sans-serif;font-size:14px;color:#111;'>"
-        + (f"<p>{intro}</p>" if intro else "")
-        + f"<table style='border-collapse:collapse;margin-top:8px;'>{rows_html}</table></div>"
-    )
+    if not to_email:
+        logger.warning("%s email skipped (no recipient address): %s", kind, subject)
+        return False
     payload = {
         "sender": {"email": BREVO_SENDER_EMAIL, "name": BREVO_SENDER_NAME},
-        "to": [{"email": NOTIFICATION_EMAIL}],
+        "to": [{"email": to_email}],
         "subject": subject,
         "htmlContent": html,
     }
@@ -345,11 +349,132 @@ def send_notification_email(subject: str, fields: dict, intro: str = "") -> bool
         if resp.status_code >= 300:
             logger.error("Brevo email send failed (%s): %s", resp.status_code, resp.text[:500])
             return False
-        logger.info("Notification email sent: %s", subject)
+        logger.info("%s email accepted by Brevo: %s -> %s", kind, subject, to_email)
         return True
     except Exception as exc:  # noqa: BLE001 — notification failures must never break the request
-        logger.exception("Notification email raised an exception: %s", exc)
+        logger.exception("%s email raised an exception: %s", kind, exc)
         return False
+
+
+def send_notification_email(subject: str, fields: dict, intro: str = "") -> bool:
+    """Send a staff notification email via Brevo's transactional email API.
+
+    Goes to NOTIFICATION_EMAIL (the staff inbox), never to the applicant.
+    """
+    rows_html = "".join(
+        f"<tr><td style='padding:4px 10px;color:#666;font-family:sans-serif;font-size:13px;"
+        f"vertical-align:top;white-space:nowrap;'>{k}</td>"
+        f"<td style='padding:4px 10px;font-family:sans-serif;font-size:13px;'>{v}</td></tr>"
+        for k, v in fields.items()
+    )
+    html = (
+        "<div style='font-family:sans-serif;font-size:14px;color:#111;'>"
+        + (f"<p>{intro}</p>" if intro else "")
+        + f"<table style='border-collapse:collapse;margin-top:8px;'>{rows_html}</table></div>"
+    )
+    return _brevo_send(NOTIFICATION_EMAIL, subject, html, kind="Staff notification")
+
+
+def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sent: bool) -> bool:
+    """Send the APPLICANT a branded confirmation that their payment landed.
+
+    Why this exists: until now a paying customer received nothing from us at
+    all — only Stripe's own receipt and (on the online route) a TrustID email
+    whose sender they do not recognise. For a £125-£175 professional service
+    that is the most likely trigger for "have you received my payment?"
+    enquiries, and it left the customer with no record of their case reference.
+
+    Best-effort and fully isolated: any failure here must never affect the
+    payment record, the staff notification, or the applicant's HTTP response.
+    """
+    to_email = (record.get("email") or "").strip()
+    if not to_email:
+        return False
+
+    first = (record.get("first_name") or (record.get("full_name") or "").split(" ")[0] or "").strip()
+    greeting = f"Dear {html_escape(first)}," if first else "Hello,"
+    try:
+        fee = f"£{float(record.get('fee_amount')):.2f}"
+    except (TypeError, ValueError):
+        fee = ""
+    route = (record.get("route") or "").strip()
+
+    if route == "online":
+        if online_link_sent:
+            next_steps = (
+                "<li>You will receive a separate email from <strong>TrustID</strong>, our "
+                "identity verification provider, containing a secure link to complete your "
+                "check online. It usually arrives within a few minutes.</li>"
+                "<li>Open that link on a phone with a camera and have your passport or "
+                "driving licence to hand.</li>"
+                "<li><strong>If you cannot find it, please check your spam or junk folder</strong> "
+                "before contacting us — it is sent by TrustID, not from this address.</li>"
+            )
+        else:
+            next_steps = (
+                "<li>We are setting up your secure identity verification link now and will "
+                "email it to you shortly. No action is needed from you at this stage.</li>"
+                "<li>If you have not received it within one working day, reply to this email "
+                "quoting your case reference and we will resend it.</li>"
+            )
+    else:
+        next_steps = (
+            "<li>Our team will contact you to confirm your appointment for in-person "
+            "identity verification.</li>"
+            "<li>Please bring your passport or driving licence to the appointment.</li>"
+        )
+
+    rows = [("Case reference", case_ref), ("Amount paid", fee)]
+    if record.get("full_name"):
+        rows.append(("Applicant", record["full_name"]))
+    if record.get("company_name"):
+        rows.append(("Company", record["company_name"]))
+    rows_html = "".join(
+        f"<tr><td style='padding:6px 14px 6px 0;color:#5b6472;font-size:14px;"
+        f"vertical-align:top;white-space:nowrap;'>{html_escape(str(k))}</td>"
+        f"<td style='padding:6px 0;font-size:14px;color:#0E1A2B;'><strong>"
+        f"{html_escape(str(v))}</strong></td></tr>"
+        for k, v in rows if v
+    )
+
+    html = f"""<div style="margin:0;padding:24px;background:#FAF9F6;">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e6e3dc;">
+    <div style="background:#0E1A2B;padding:20px 28px;">
+      <div style="color:#ffffff;font-family:Georgia,serif;font-size:19px;">Director Personal Code</div>
+      <div style="color:#B8912E;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+                  padding-top:4px;">Companies House identity verification</div>
+    </div>
+    <div style="padding:28px;font-family:Helvetica,Arial,sans-serif;color:#0B1220;">
+      <div style="font-size:19px;color:#0E1A2B;padding-bottom:14px;">Payment received — thank you</div>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 14px;">{greeting}</p>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 18px;">
+        We have received your payment and your identity verification case is now open.
+        Please keep this email — it is your record of payment and contains your case reference.
+      </p>
+      <table style="border-collapse:collapse;margin:0 0 22px;">{rows_html}</table>
+      <div style="font-size:14px;color:#0E1A2B;font-weight:bold;padding-bottom:6px;">What happens next</div>
+      <ul style="font-size:14px;line-height:1.6;margin:0 0 20px;padding-left:20px;">{next_steps}</ul>
+      <p style="font-size:14px;line-height:1.6;margin:0 0 20px;">
+        If you have any questions, reply to this email or contact us at
+        <a href="mailto:{NOTIFICATION_EMAIL}" style="color:#8C1D3F;">{NOTIFICATION_EMAIL}</a>,
+        quoting your case reference.
+      </p>
+      <div style="border-top:1px solid #e6e3dc;padding-top:14px;font-size:11px;
+                  line-height:1.6;color:#6b7280;">
+        Tax And Accounting Hub Ltd · Registered ACSP · Company No. 08408126 ·
+        AAT supervised for AML · ICO registered<br>
+        11 Holbeach Avenue, Shortstown, Bedford, MK42 0EG
+      </div>
+    </div>
+  </div>
+</div>"""
+
+    return _brevo_send(
+        to_email,
+        f"Payment received — your case reference {case_ref}",
+        html,
+        kind="Applicant confirmation",
+    )
 
 
 @app.get("/health")
@@ -714,6 +839,7 @@ def _refresh_payment_status(case_ref: str):
         # /api/applications/{case_ref}/verification endpoint called it. Now
         # that call happens for real, right here, the moment payment clears.
         verification_intro = None
+        online_link_sent = False
         if record.get("route") == "online":
             result = trustid_client.create_guest_link(
                 first_name=record.get("first_name") or (record.get("full_name") or "").split(" ")[0],
@@ -727,6 +853,7 @@ def _refresh_payment_status(case_ref: str):
             )
             db.commit()
             if result["status"] == "link_sent":
+                online_link_sent = True
                 verification_intro = "Payment has been received and TrustID has automatically emailed the applicant their identity verification Guest Link — no staff action needed unless they report an issue."
             else:
                 verification_intro = (
@@ -747,6 +874,20 @@ def _refresh_payment_status(case_ref: str):
             },
             intro=verification_intro,
         )
+
+        # Confirm to the APPLICANT that their money arrived. Previously they got
+        # nothing from us: only Stripe's receipt and, on the online route, a
+        # TrustID email from a sender they have no reason to recognise.
+        #
+        # Wrapped in its own try/except on top of the best-effort send inside
+        # _brevo_send, because this runs inside the payment-status refresh that
+        # the applicant's own browser is waiting on. A courtesy email must never
+        # be able to turn a successful payment into an HTTP 500 for the person
+        # who just paid — the payment is already committed to the database above.
+        try:
+            send_payment_confirmation_email(case_ref, record, online_link_sent=online_link_sent)
+        except Exception as exc:  # noqa: BLE001 — never let the courtesy email break payment handling
+            logger.exception("Applicant confirmation email failed for %s: %s", case_ref, exc)
 
     return {"payment_status": mapped, "raw_status": status}
 

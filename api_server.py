@@ -813,13 +813,29 @@ async def sumup_webhook(request: Request):
 @app.post("/api/webhooks/stripe")
 async def stripe_webhook(request: Request):
     # Stripe webhook payload wraps the checkout session under data.object and
-    # tells us the event type (e.g. checkout.session.completed). No webhook
-    # endpoint is registered with Stripe yet, so gated on STRIPE_WEBHOOK_SECRET
-    # — verification switches on automatically once the dashboard secret is set,
-    # instead of silently trusting an unsigned payload forever. As with SumUp,
-    # the payload is only used to look up a checkout_id already in our own
-    # database; the actual status always comes from calling Stripe's own API
-    # back (_refresh_payment_status), never from the webhook body.
+    # tells us the event type (e.g. checkout.session.completed).
+    #
+    # A live webhook endpoint IS registered with Stripe and enabled, pointing at
+    # this route, subscribed to checkout.session.completed / .expired /
+    # .async_payment_succeeded / .async_payment_failed. (An earlier version of
+    # this comment said no endpoint was registered yet — that is no longer true,
+    # and believing it risks someone building a redundant workaround for payments
+    # they assume are never delivered here.)
+    #
+    # This matters because it is what stops a payment being lost: the wizard also
+    # polls /payment-status on return from Stripe, but a customer who pays and
+    # immediately closes the tab never makes that call. The webhook is the path
+    # that still flips the record and notifies staff in that case.
+    #
+    # Signature verification is gated on STRIPE_WEBHOOK_SECRET so it can never
+    # silently trust an unsigned payload. Verified behaviour: a correctly signed
+    # payload is accepted; a wrong secret, a stale timestamp (replay), and a
+    # missing signature header are each rejected with HTTP 400.
+    #
+    # As with SumUp, the payload is only used to look up a checkout_id already in
+    # our own database; the actual status always comes from calling Stripe's own
+    # API back (_refresh_payment_status), never from the webhook body. An unknown
+    # checkout_id is a harmless no-op.
     raw_body = await request.body()
     if STRIPE_WEBHOOK_SECRET:
         sig_header = request.headers.get("stripe-signature", "")

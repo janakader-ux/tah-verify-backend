@@ -605,6 +605,14 @@ def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[s
         "line_items[0][price_data][unit_amount]": str(unit_amount),
         "line_items[0][price_data][product_data][name]": f"Director Personal Code — Companies House identity verification ({case_ref})",
         "metadata[case_ref]": case_ref,
+        # Turn OFF Stripe Adaptive Pricing. With it enabled, a non-UK visitor was
+        # shown a converted local-currency amount as the DEFAULT selected option
+        # (e.g. $177.37 with "includes 4% conversion fee"), pushing GBP to a
+        # secondary tab. Our fees are advertised as all-inclusive GBP prices
+        # (£125 UK-resident / £175 overseas), so a surprise ~4% FX margin at the
+        # checkout contradicts that promise — and overseas directors are exactly
+        # the group most affected. Everyone now pays the advertised GBP amount.
+        "adaptive_pricing[enabled]": "false",
     }
     if record.get("email"):
         payload["customer_email"] = record["email"]

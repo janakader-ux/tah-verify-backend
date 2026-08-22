@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-api_server.py — TAH Verify backend, runs on port 8000 inside the sandbox.
+api_server.py — Director Personal Code backend, runs on port 8000 inside the sandbox.
 
 Handles:
   - Storing wizard applications (case reference, applicant details, fee, route)
@@ -603,7 +603,7 @@ def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[s
         "line_items[0][quantity]": "1",
         "line_items[0][price_data][currency]": "gbp",
         "line_items[0][price_data][unit_amount]": str(unit_amount),
-        "line_items[0][price_data][product_data][name]": f"Verify My ID ACSP UK [TAH Verify] — ACSP identity verification ({case_ref})",
+        "line_items[0][price_data][product_data][name]": f"Director Personal Code — Companies House identity verification ({case_ref})",
         "metadata[case_ref]": case_ref,
     }
     if record.get("email"):
@@ -633,7 +633,7 @@ def create_payment(case_ref: str, request_body: dict = None, token: str = Query(
             "amount": record["fee_amount"],
             "currency": "GBP",
             "merchant_code": SUMUP_MERCHANT_CODE,
-            "description": f"Verify My ID ACSP UK [TAH Verify] — ACSP identity verification ({case_ref})",
+            "description": f"Director Personal Code — Companies House identity verification ({case_ref})",
             "hosted_checkout": {"enabled": True},
         }
         if redirect_url:

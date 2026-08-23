@@ -447,37 +447,37 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
     if record.get("company_name"):
         rows.append(("Company", record["company_name"]))
     rows_html = "".join(
-        f"<tr><td style='padding:6px 14px 6px 0;color:#5b6472;font-size:14px;"
+        f"<tr><td style='padding:6px 14px 6px 0;color:#575F67;font-size:14px;"
         f"vertical-align:top;white-space:nowrap;'>{html_escape(str(k))}</td>"
-        f"<td style='padding:6px 0;font-size:14px;color:#0E1A2B;'><strong>"
+        f"<td style='padding:6px 0;font-size:14px;color:#0B1B2F;'><strong>"
         f"{html_escape(str(v))}</strong></td></tr>"
         for k, v in rows if v
     )
 
-    html = f"""<div style="margin:0;padding:24px;background:#FAF9F6;">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e6e3dc;">
-    <div style="background:#0E1A2B;padding:20px 28px;">
-      <div style="color:#ffffff;font-family:Georgia,serif;font-size:19px;">Director Personal Code</div>
-      <div style="color:#B8912E;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    html = f"""<div style="margin:0;padding:24px;background:#F8F7F2;">
+  <div style="max-width:560px;margin:0 auto;background:#FCFCF9;border:1px solid #E6E1DC;">
+    <div style="background:#0B1B2F;padding:20px 28px;">
+      <div style="color:#F8F7F2;font-family:Georgia,serif;font-size:19px;">Director Personal Code</div>
+      <div style="color:#C49F4D;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
                   padding-top:4px;">Companies House identity verification</div>
     </div>
-    <div style="padding:28px;font-family:Helvetica,Arial,sans-serif;color:#0B1220;">
-      <div style="font-size:19px;color:#0E1A2B;padding-bottom:14px;">Payment received — thank you</div>
+    <div style="padding:28px;font-family:Helvetica,Arial,sans-serif;color:#1B2026;">
+      <div style="font-size:19px;color:#0B1B2F;padding-bottom:14px;">Payment received — thank you</div>
       <p style="font-size:14px;line-height:1.6;margin:0 0 14px;">{greeting}</p>
       <p style="font-size:14px;line-height:1.6;margin:0 0 18px;">
         We have received your payment and your identity verification case is now open.
         Please keep this email — it is your record of payment and contains your case reference.
       </p>
       <table style="border-collapse:collapse;margin:0 0 22px;">{rows_html}</table>
-      <div style="font-size:14px;color:#0E1A2B;font-weight:bold;padding-bottom:6px;">What happens next</div>
+      <div style="font-size:14px;color:#0B1B2F;font-weight:bold;padding-bottom:6px;">What happens next</div>
       <ul style="font-size:14px;line-height:1.6;margin:0 0 20px;padding-left:20px;">{next_steps}</ul>
       <p style="font-size:14px;line-height:1.6;margin:0 0 20px;">
         If you have any questions, reply to this email or contact us at
         <a href="mailto:{NOTIFICATION_EMAIL}" style="color:#6D1731;">{NOTIFICATION_EMAIL}</a>,
         quoting your case reference.
       </p>
-      <div style="border-top:1px solid #e6e3dc;padding-top:14px;font-size:11px;
-                  line-height:1.6;color:#6b7280;">
+      <div style="border-top:1px solid #E6E1DC;padding-top:14px;font-size:11px;
+                  line-height:1.6;color:#575F67;">
         Tax And Accounting Hub Ltd · Registered ACSP · Company No. 08408126 ·
         AAT supervised for AML · ICO registered<br>
         11 Holbeach Avenue, Shortstown, Bedford, MK42 0EG

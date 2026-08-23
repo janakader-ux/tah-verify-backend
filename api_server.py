@@ -473,7 +473,7 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
       <ul style="font-size:14px;line-height:1.6;margin:0 0 20px;padding-left:20px;">{next_steps}</ul>
       <p style="font-size:14px;line-height:1.6;margin:0 0 20px;">
         If you have any questions, reply to this email or contact us at
-        <a href="mailto:{NOTIFICATION_EMAIL}" style="color:#8C1D3F;">{NOTIFICATION_EMAIL}</a>,
+        <a href="mailto:{NOTIFICATION_EMAIL}" style="color:#6D1731;">{NOTIFICATION_EMAIL}</a>,
         quoting your case reference.
       </p>
       <div style="border-top:1px solid #e6e3dc;padding-top:14px;font-size:11px;

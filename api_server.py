@@ -129,6 +129,23 @@ STRIPE_TOKEN = os.environ.get("STRIPE_SECRET_KEY", "") or os.environ.get("CUSTOM
 if not os.environ.get("STRIPE_SECRET_KEY") and os.environ.get("CUSTOM_CRED_API_STRIPE_COM_URL"):
     STRIPE_BASE_URL = os.environ.get("CUSTOM_CRED_API_STRIPE_COM_URL", "").rstrip("/")
 
+
+# Card-statement descriptor applied to each Director Personal Code payment.
+# Stripe hard-limits this to 22 characters and rejects the characters < > \ ' " *,
+# so the value is sanitised here rather than trusted blindly from the environment:
+# a descriptor Stripe rejects would fail the whole checkout-session creation and
+# therefore block the customer from paying at all. Overridable via the
+# STRIPE_STATEMENT_DESCRIPTOR env var without a code change.
+def _clean_statement_descriptor(value: str, fallback: str = "DIRECTOR PERSONAL CODE") -> str:
+    cleaned = "".join(c for c in (value or "") if c not in "<>\\'\"*")
+    cleaned = " ".join(cleaned.split())[:22].strip()
+    return cleaned or fallback
+
+
+STRIPE_STATEMENT_DESCRIPTOR = _clean_statement_descriptor(
+    os.environ.get("STRIPE_STATEMENT_DESCRIPTOR", "DIRECTOR PERSONAL CODE")
+)
+
 SUMUP_MERCHANT_CODE = os.environ.get("SUMUP_MERCHANT_CODE", "")
 SUMUP_BASE_URL = "https://api.sumup.com"
 # Prefer the plain, publish-safe env var; fall back to the dev-sandbox
@@ -738,6 +755,20 @@ def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[s
         # checkout contradicts that promise — and overseas directors are exactly
         # the group most affected. Everyone now pays the advertised GBP amount.
         "adaptive_pricing[enabled]": "false",
+        # Card-statement text for THIS payment only.
+        #
+        # The Stripe account's own account-wide descriptor is "TAX AND ACCOUNTING
+        # HUB", which is the legal entity but not the brand the customer bought
+        # from. Someone who applied at directorpersonalcode.uk and then sees an
+        # unfamiliar name against a 125 pound charge on their statement is a prime
+        # candidate for a chargeback, and card disputes are expensive and slow to
+        # defend even when won.
+        #
+        # Deliberately set per payment rather than on the account: the account may
+        # later process other Tax & Accounting Hub / USTAX4Expats work, and the
+        # account-wide descriptor is shared by everything that charges through it,
+        # so changing it there would mislabel those other services instead.
+        "payment_intent_data[statement_descriptor]": STRIPE_STATEMENT_DESCRIPTOR,
     }
     if record.get("email"):
         payload["customer_email"] = record["email"]

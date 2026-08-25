@@ -89,7 +89,7 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 import requests
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -244,13 +244,50 @@ app.add_middleware(
 )
 
 
-def require_staff_passcode(passcode: str) -> None:
+# Name of the request header that carries the staff passcode. Preferred over the
+# legacy ?passcode= query parameter: query strings are routinely written to
+# web-server access logs, reverse-proxy logs and browser history, whereas
+# request headers are not, so the header keeps the shared secret out of logs.
+STAFF_PASSCODE_HEADER = "X-Staff-Passcode"
+
+
+def require_staff_passcode(passcode: Optional[str]) -> None:
     """Fail closed when staff access has not been configured on the server."""
     if not STAFF_PASSCODE:
         logger.error("Staff-only endpoint called while STAFF_PASSCODE is not configured")
         raise HTTPException(503, "Staff access is not configured")
-    if not compare_digest(passcode, STAFF_PASSCODE):
+    # Treat a missing or empty passcode as a plain auth failure. Previously this
+    # function assumed a str and would raise TypeError inside compare_digest
+    # (surfacing as a 500) if handed None; it must fail closed with a 403.
+    if not passcode:
         raise HTTPException(403, "Invalid passcode")
+    # compare_digest raises TypeError on non-ASCII str inputs, so compare bytes.
+    # Still constant-time, but tolerant of any character a passcode may contain.
+    if not compare_digest(passcode.encode("utf-8"), STAFF_PASSCODE.encode("utf-8")):
+        raise HTTPException(403, "Invalid passcode")
+
+
+def staff_passcode_supplied(
+    header_passcode: Optional[str] = Header(default=None, alias=STAFF_PASSCODE_HEADER),
+    passcode: Optional[str] = Query(default=None),
+) -> Optional[str]:
+    """Return the staff passcode supplied by the caller, header first.
+
+    Accepts either transport so that the frontend can move to the header without
+    a flag-day cutover, and so manual diagnostic calls that still append
+    ?passcode=... keep working. This only *reads* the value; validation remains
+    with require_staff_passcode so every call site keeps its existing check.
+    """
+    if header_passcode is not None:
+        return header_passcode
+    if passcode is not None:
+        logger.warning(
+            "Staff endpoint authenticated via the deprecated ?passcode= query "
+            "parameter, which leaks the secret into access logs. Send the %s "
+            "header instead.",
+            STAFF_PASSCODE_HEADER,
+        )
+    return passcode
 
 
 class ApplicationIn(BaseModel):
@@ -507,7 +544,7 @@ def health():
 
 
 @app.post("/api/diagnostics/send-test-email")
-def send_test_email(passcode: str = Query(...)):
+def send_test_email(passcode: Optional[str] = Depends(staff_passcode_supplied)):
     """Staff-only: fire a real test notification email on demand, so the
     Brevo integration can be verified from the staff dashboard without
     needing a full test application + payment."""
@@ -525,7 +562,7 @@ def send_test_email(passcode: str = Query(...)):
 
 
 @app.post("/api/diagnostics/trustid-test")
-def trustid_test(passcode: str = Query(...)):
+def trustid_test(passcode: Optional[str] = Depends(staff_passcode_supplied)):
     """Staff-only: check TrustID connectivity on demand.
 
     Always runs the unauthenticated testConnection ping. If TRUSTID_SERVER /
@@ -1026,7 +1063,9 @@ async def stripe_webhook(request: Request):
 
 
 @app.post("/api/applications/{case_ref}/verification")
-def trigger_verification(case_ref: str, passcode: str = Query(...)):
+def trigger_verification(
+    case_ref: str, passcode: Optional[str] = Depends(staff_passcode_supplied)
+):
     require_staff_passcode(passcode)
     record = get_application(case_ref)
     if not record:
@@ -1054,7 +1093,7 @@ async def trustid_webhook(payload: dict):
 
 
 @app.get("/api/applications")
-def list_applications(passcode: str = Query(...)):
+def list_applications(passcode: Optional[str] = Depends(staff_passcode_supplied)):
     require_staff_passcode(passcode)
     cur = db.execute("SELECT * FROM applications ORDER BY id DESC")
     columns = [d[0] for d in cur.description]
@@ -1062,7 +1101,7 @@ def list_applications(passcode: str = Query(...)):
 
 
 @app.post("/api/diagnostics/reconcile-payments")
-def reconcile_payments(passcode: str = Query(...)):
+def reconcile_payments(passcode: Optional[str] = Depends(staff_passcode_supplied)):
     """Safety net for the automatic TrustID trigger.
 
     _refresh_payment_status() (which fires TrustID the moment a payment is
@@ -1099,7 +1138,9 @@ def reconcile_payments(passcode: str = Query(...)):
 
 
 @app.delete("/api/applications/{case_ref:path}")
-def delete_application(case_ref: str, passcode: str = Query(...)):
+def delete_application(
+    case_ref: str, passcode: Optional[str] = Depends(staff_passcode_supplied)
+):
     """Staff-only: permanently remove a single application record. Used to
     clean up test/demo submissions from the dashboard. There is no undo."""
     require_staff_passcode(passcode)

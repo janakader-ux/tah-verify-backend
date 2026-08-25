@@ -249,6 +249,14 @@ app.add_middleware(
 # web-server access logs, reverse-proxy logs and browser history, whereas
 # request headers are not, so the header keeps the shared secret out of logs.
 STAFF_PASSCODE_HEADER = "X-Staff-Passcode"
+# Per-application access token transport. Same reasoning as the staff passcode
+# header above: a secret in a URL query string is written verbatim into the
+# hosting platform's access logs and the applicant's own browser history. This
+# one is narrower in blast radius (it authorises exactly one application rather
+# than the whole staff dashboard) but what it protects is applicant personal
+# data — date of birth, home address, mobile, and the signed engagement letter
+# including the signature image — so it does not belong in a query string either.
+CASE_TOKEN_HEADER = "X-Case-Token"
 
 
 def require_staff_passcode(passcode: Optional[str]) -> None:
@@ -358,8 +366,42 @@ def require_case_token(record: dict, token: Optional[str]) -> None:
     poll payment status for that specific application.
     """
     stored = record.get("access_token") or ""
-    if not stored or not token or not compare_digest(token, stored):
+    if not stored or not token:
         raise HTTPException(403, "Invalid or missing access token for this case reference")
+    # compare_digest raises TypeError on non-ASCII str inputs, which would
+    # surface as a 500 instead of a clean auth failure. Compare bytes: still
+    # constant-time, but tolerant of any character the value may contain.
+    if not compare_digest(token.encode("utf-8"), stored.encode("utf-8")):
+        raise HTTPException(403, "Invalid or missing access token for this case reference")
+
+
+def case_token_supplied(
+    header_token: Optional[str] = Header(default=None, alias=CASE_TOKEN_HEADER),
+    token: Optional[str] = Query(default=None),
+) -> Optional[str]:
+    """Return the per-case access token supplied by the caller, header first.
+
+    Accepts either transport deliberately. The query parameter is kept working
+    because an applicant who is part-way through the wizard has an older
+    apply.js already running in their tab: a flag-day cutover would break that
+    person's in-progress application mid-payment. This only *reads* the value —
+    validation stays in require_case_token, so every call site keeps its
+    existing check unchanged.
+
+    A side benefit of routing through a dependency: a completely missing token
+    now reaches require_case_token and fails closed with 403, where the old
+    Query(...) form rejected it with a 422 validation error instead.
+    """
+    if header_token is not None:
+        return header_token
+    if token is not None:
+        logger.warning(
+            "Case endpoint authenticated via the deprecated ?token= query "
+            "parameter, which leaks the applicant's access token into access "
+            "logs and browser history. Send the %s header instead.",
+            CASE_TOKEN_HEADER,
+        )
+    return token
 
 
 def _brevo_send(to_email: str, subject: str, html: str, kind: str = "Notification") -> bool:
@@ -658,7 +700,7 @@ def create_application(app_in: ApplicationIn):
 
 
 @app.post("/api/applications/{case_ref}/submitted")
-def mark_submitted(case_ref: str, token: str = Query(...)):
+def mark_submitted(case_ref: str, token: Optional[str] = Depends(case_token_supplied)):
     record = get_application(case_ref)
     if not record:
         raise HTTPException(404, "Application not found")
@@ -715,7 +757,9 @@ class AppointmentIn(BaseModel):
 
 
 @app.post("/api/applications/{case_ref}/appointment")
-def request_appointment(case_ref: str, body: AppointmentIn, token: str = Query(...)):
+def request_appointment(
+    case_ref: str, body: AppointmentIn, token: Optional[str] = Depends(case_token_supplied)
+):
     record = get_application(case_ref)
     if not record:
         raise HTTPException(404, "Application not found")
@@ -814,7 +858,9 @@ def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[s
 
 
 @app.post("/api/applications/{case_ref}/payment")
-def create_payment(case_ref: str, request_body: dict = None, token: str = Query(...)):
+def create_payment(
+    case_ref: str, request_body: dict = None, token: Optional[str] = Depends(case_token_supplied)
+):
     record = get_application(case_ref)
     if not record:
         raise HTTPException(404, "Application not found")
@@ -961,7 +1007,7 @@ def _refresh_payment_status(case_ref: str):
 
 
 @app.get("/api/applications/{case_ref}/payment-status")
-def payment_status(case_ref: str, token: str = Query(...)):
+def payment_status(case_ref: str, token: Optional[str] = Depends(case_token_supplied)):
     record = get_application(case_ref)
     if not record:
         raise HTTPException(404, "Application not found")

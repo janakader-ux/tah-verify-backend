@@ -298,12 +298,71 @@ def staff_passcode_supplied(
     return passcode
 
 
+# ---------------------------------------------------------------------------
+# Authoritative pricing (server-side source of truth)
+# ---------------------------------------------------------------------------
+# SECURITY: the wizard posts a `fee_amount`, but it must NEVER be trusted.
+# Until 2 September 2026 that client value was written straight to the database
+# and then used to build the Stripe/SumUp charge, so anyone could edit the
+# request in their browser's dev tools and pay £49 instead of £175. The fee is
+# now always recomputed here from `residency` + `route`, and the client's
+# `fee_amount` is treated as advisory only (logged when it disagrees, so a
+# genuine frontend/backend drift is visible rather than silent).
+#
+# This table MUST stay in step with the PRICING object at the top of
+# js/apply.js. If you change a price, change it in both places.
+PRICING = {
+    "uk": {"online": 49.0, "in-person": 125.0},
+    "overseas": {"online": 175.0, "in-person": 175.0},
+}
+
+VALID_RESIDENCIES = tuple(PRICING.keys())
+VALID_ROUTES = ("online", "in-person")
+
+
+def resolve_fee(residency: Optional[str], route: Optional[str], case_ref: str = "") -> float:
+    """Return the authoritative fee for a residency/route pair.
+
+    Raises HTTPException(400) on an unrecognised residency, because that means
+    we cannot price the case at all and must not guess.
+
+    A missing or unrecognised route falls back to the HIGHEST fee for that
+    residency. That is deliberate and fails safe in two ways: it can never
+    undercharge, and because the old residency-only prices (£125 UK / £175
+    overseas) were exactly those maximums, historic rows written before the
+    route-based restructure still price identically to what their applicant
+    was originally quoted.
+    """
+    key = (residency or "").strip().lower()
+    tiers = PRICING.get(key)
+    if not tiers:
+        raise HTTPException(
+            400,
+            f"Unrecognised residency {residency!r}. Expected one of: {', '.join(VALID_RESIDENCIES)}.",
+        )
+
+    route_key = (route or "").strip().lower()
+    if route_key in tiers:
+        return tiers[route_key]
+
+    fallback = max(tiers.values())
+    logger.warning(
+        "Pricing fallback for case %s: residency=%r route=%r not priceable, "
+        "charging the highest %s tier (£%.2f)",
+        case_ref or "<new>", residency, route, key, fallback,
+    )
+    return fallback
+
+
 class ApplicationIn(BaseModel):
     case_ref: str
     full_name: str
     email: str
     residency: str  # 'uk' | 'overseas'
-    fee_amount: float
+    # Advisory only — what the browser THINKS the fee is, kept so a mismatch can
+    # be logged. The charged amount always comes from resolve_fee(). Optional so
+    # a client that stops sending it entirely still works.
+    fee_amount: Optional[float] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     route: Optional[str] = None  # 'online' | 'in-person'
@@ -657,6 +716,26 @@ def config():
 @app.post("/api/applications", status_code=201)
 def create_application(app_in: ApplicationIn):
     now = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    # Reject an unrecognised route before pricing, so a bad value surfaces as a
+    # clear 400 rather than silently landing on the fail-safe fallback tier.
+    if app_in.route is not None and app_in.route.strip().lower() not in VALID_ROUTES:
+        raise HTTPException(
+            400,
+            f"Unrecognised route {app_in.route!r}. Expected one of: {', '.join(VALID_ROUTES)}.",
+        )
+
+    # Never trust the client's fee. Recompute it from residency + route and
+    # store only that. An unrecognised residency raises 400 from resolve_fee().
+    fee_amount = resolve_fee(app_in.residency, app_in.route, app_in.case_ref)
+    if app_in.fee_amount is not None and abs(float(app_in.fee_amount) - fee_amount) > 0.005:
+        logger.warning(
+            "Fee mismatch for case %s: client sent £%.2f, server charging £%.2f "
+            "(residency=%r route=%r). Client value ignored.",
+            app_in.case_ref, float(app_in.fee_amount), fee_amount,
+            app_in.residency, app_in.route,
+        )
+
     existing = get_application(app_in.case_ref)
     if existing:
         db.execute(
@@ -668,7 +747,7 @@ def create_application(app_in: ApplicationIn):
                updated_at=? WHERE case_ref=?""",
             [
                 app_in.full_name, app_in.first_name, app_in.last_name, app_in.email, app_in.residency,
-                app_in.fee_amount, app_in.route, app_in.appointment_type, app_in.appointment_office,
+                fee_amount, app_in.route, app_in.appointment_type, app_in.appointment_office,
                 app_in.appointment_date, app_in.appointment_time_pref, app_in.role, app_in.former_names,
                 app_in.dob, app_in.nationality, app_in.residence_country, app_in.home_address,
                 app_in.address_since, app_in.previous_address, app_in.mobile, app_in.company_name,
@@ -686,7 +765,7 @@ def create_application(app_in: ApplicationIn):
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             [
                 app_in.case_ref, app_in.full_name, app_in.first_name, app_in.last_name, app_in.email,
-                app_in.residency, app_in.fee_amount, app_in.route, app_in.appointment_type,
+                app_in.residency, fee_amount, app_in.route, app_in.appointment_type,
                 app_in.appointment_office, app_in.appointment_date, app_in.appointment_time_pref,
                 app_in.role, app_in.former_names, app_in.dob, app_in.nationality, app_in.residence_country,
                 app_in.home_address, app_in.address_since, app_in.previous_address, app_in.mobile,
@@ -816,8 +895,30 @@ def stripe_request(method: str, path: str, form_body: Optional[dict] = None):
     return resp.json()
 
 
+def charge_amount_for(record: dict) -> float:
+    """The amount to actually charge for a stored application.
+
+    Defence in depth: create_application() already recomputes and stores the
+    correct fee, so for any row written after 2 September 2026 this simply
+    agrees with the stored value. It is re-derived here anyway so that the
+    money leaving the customer's card is priced at the moment of charging, from
+    residency + route, and never from a stored number — which protects rows
+    written before the fix and any future write path that forgets to validate.
+    """
+    case_ref = record.get("case_ref", "")
+    fee = resolve_fee(record.get("residency"), record.get("route"), case_ref)
+    stored = record.get("fee_amount")
+    if stored is not None and abs(float(stored) - fee) > 0.005:
+        logger.warning(
+            "Stored fee for case %s (£%.2f) disagrees with the pricing table "
+            "(£%.2f, residency=%r route=%r). Charging the pricing-table amount.",
+            case_ref, float(stored), fee, record.get("residency"), record.get("route"),
+        )
+    return fee
+
+
 def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[str], origin: str):
-    unit_amount = int(round(float(record["fee_amount"]) * 100))
+    unit_amount = int(round(charge_amount_for(record) * 100))
     payload = {
         "mode": "payment",
         "client_reference_id": case_ref,
@@ -832,7 +933,7 @@ def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[s
         # shown a converted local-currency amount as the DEFAULT selected option
         # (e.g. $177.37 with "includes 4% conversion fee"), pushing GBP to a
         # secondary tab. Our fees are advertised as all-inclusive GBP prices
-        # (£125 UK-resident / £175 overseas), so a surprise ~4% FX margin at the
+        # (£49–£125 UK-resident by route / £175 overseas), so a surprise ~4% FX margin at the
         # checkout contradicts that promise — and overseas directors are exactly
         # the group most affected. Everyone now pays the advertised GBP amount.
         "adaptive_pricing[enabled]": "false",
@@ -841,7 +942,7 @@ def create_stripe_checkout(case_ref: str, record: dict, redirect_url: Optional[s
         # The Stripe account's own account-wide descriptor is "TAX AND ACCOUNTING
         # HUB", which is the legal entity but not the brand the customer bought
         # from. Someone who applied at directorpersonalcode.uk and then sees an
-        # unfamiliar name against a 125 pound charge on their statement is a prime
+        # unfamiliar name against a three-figure charge on their statement is a prime
         # candidate for a chargeback, and card disputes are expensive and slow to
         # defend even when won.
         #
@@ -877,7 +978,7 @@ def create_payment(
         provider = "sumup"
         payload = {
             "checkout_reference": f"{case_ref}-{uuid.uuid4().hex[:8]}",
-            "amount": record["fee_amount"],
+            "amount": charge_amount_for(record),
             "currency": "GBP",
             "merchant_code": SUMUP_MERCHANT_CODE,
             "description": f"Director Personal Code — Companies House identity verification ({case_ref})",

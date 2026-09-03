@@ -21,8 +21,8 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r tah-verify-site/backend/requirements.txt
-          pip install httpx
+          pip install fastapi httpx uvicorn
+          find . -name "requirements.txt" -exec pip install -r {} + || true
 
       - name: Run Local E2E Test Suite
         run: |

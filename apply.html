@@ -1,6 +1,89 @@
-<div style="background-color: #f1f5f9; color: #334155; font-size: 13px; text-align: center; padding: 10px 16px; border-bottom: 1px solid #cbd5e1; font-family: sans-serif;">
-  <strong>Commercial Service Notice:</strong> directorpersonalcode.uk is an independent private Identity Verification Technology Provider (IDVT). We are not affiliated with, nor part of, Companies House or the UK Government. You can verify directly with Companies House at <a href="https://www.gov.uk" target="_blank" rel="noopener" style="color: #2563eb; text-decoration: underline;">gov.uk</a>.
-</div><div style="max-width: 1200px; margin: 40px auto 20px auto; padding: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; line-height: 1.6; font-family: sans-serif;">
-  <p><strong>Service Transparency & Value Statement:</strong> directorpersonalcode.uk provides managed GPG45 biometric identity verification services for UK and non-UK company directors. Our fee (£85–£175 depending on route) covers remote TrustID digital document verification, biometric facial matching, identity statement preparation, and direct concierge handling. Free or standard direct filing routes are available directly via official government channels at <a href="https://www.gov.uk/government/organisations/companies-house" target="_blank" rel="noopener" style="color: #2563eb;">gov.uk/companies-house</a>.</p>
-  <p style="margin-top: 10px;"><strong>Technology Partner:</strong> Identity verification routines are executed via TrustID, a UK Government-certified Identity Verification Technology (IDVT) provider compliant with GPG45 standards.</p>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Director Personal Code Verification | Independent IDVT Service</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+
+  <!-- Top Banner Disclaimer -->
+  <div class="bg-slate-100 text-slate-700 text-xs sm:text-sm text-center py-2.5 px-4 border-b border-slate-300">
+    <strong>Commercial Service Notice:</strong> directorpersonalcode.uk is an independent private Identity Verification Technology Provider (IDVT). We are not affiliated with, nor part of, Companies House or the UK Government. You can verify directly with Companies House at <a href="https://www.gov.uk" target="_blank" rel="noopener" class="text-blue-600 underline">gov.uk</a>.
+  </div>
+
+  <!-- Main Verification Form Container -->
+  <main class="max-w-xl mx-auto my-8 p-6 sm:p-8 bg-white rounded-xl shadow-md border border-slate-200 w-full">
+    <div class="mb-6 border-b pb-4">
+      <h1 class="text-2xl font-bold text-slate-900">Director Identity Verification</h1>
+      <p class="text-sm text-slate-600 mt-1">Complete your remote GPG45 biometric check to obtain your verified director identity statement.</p>
+    </div>
+
+    <form id="idvForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Full Legal Name</label>
+        <input type="text" id="fullName" required placeholder="First and Last Name" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Email Address</label>
+        <input type="email" id="email" required placeholder="director@company.co.uk" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">UK Company Number (Optional)</label>
+        <input type="text" id="companyNumber" placeholder="e.g. 12345678" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm">
+      </div>
+
+      <!-- Dynamic Route & Pricing Box -->
+      <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 my-4 flex justify-between items-center">
+        <div>
+          <p class="text-xs text-slate-500 uppercase font-semibold">Verification Route</p>
+          <p id="routeLabel" class="text-sm font-bold text-slate-800">Standard UK Resident Director</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-slate-500 uppercase font-semibold">Service Fee</p>
+          <p id="priceLabel" class="text-xl font-extrabold text-blue-600">£125.00</p>
+        </div>
+      </div>
+
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 text-sm">
+        Start TrustID Biometric Check
+      </button>
+    </form>
+  </main>
+
+  <!-- Footer Legal Disclaimers -->
+  <footer class="max-w-4xl mx-auto my-6 px-4 text-xs text-slate-500 border-t border-slate-200 pt-6 leading-relaxed">
+    <p><strong>Service Transparency & Value Statement:</strong> directorpersonalcode.uk provides managed GPG45 biometric identity verification services for UK and non-UK company directors. Our fee (£85–£175 depending on route) covers remote TrustID digital document verification, biometric facial matching, identity statement preparation, and direct concierge handling. Free or standard direct filing routes are available directly via official government channels at <a href="https://www.gov.uk/government/organisations/companies-house" target="_blank" rel="noopener" class="text-blue-600 underline">gov.uk/companies-house</a>.</p>
+    <p class="mt-2"><strong>Technology Partner:</strong> Identity verification routines are executed via TrustID, a UK Government-certified Identity Verification Technology (IDVT) provider compliant with GPG45 standards.</p>
+  </footer>
+
+  <!-- Dynamic URL Parameter Pricing Logic -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const residency = params.get('residency');
+    const route = params.get('route');
+
+    const routeLabel = document.getElementById('routeLabel');
+    const priceLabel = document.getElementById('priceLabel');
+
+    if (residency === 'overseas') {
+      routeLabel.textContent = 'Overseas Non-UK Resident Director';
+      priceLabel.textContent = '£175.00';
+    } else if (route === 'b2b') {
+      routeLabel.textContent = 'B2B Partner Verification (Accounting / Legal)';
+      priceLabel.textContent = '£85.00';
+    } else {
+      routeLabel.textContent = 'Standard UK Resident Director';
+      priceLabel.textContent = '£125.00';
+    }
+
+    document.getElementById('idvForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('Connecting to secure TrustID verification engine...');
+    });
+  </script>
+</body>
+</html>

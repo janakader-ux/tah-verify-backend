@@ -15,7 +15,7 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:/home/user/workspace/... path sits and replace it with a dynamic path lookup:  
+        with:
           python-version: '3.11'
 
       - name: Install Dependencies

@@ -69,15 +69,15 @@
     const routeLabel = document.getElementById('routeLabel');
     const priceLabel = document.getElementById('priceLabel');
 
-    if (residency === 'overseas') {
+if (residency === 'overseas') {
       routeLabel.textContent = 'Overseas Non-UK Resident Director';
-      priceLabel.textContent = '£175.00';
+      priceLabel.textContent = '£125.00';
     } else if (route === 'b2b') {
       routeLabel.textContent = 'B2B Partner Verification (Accounting / Legal)';
       priceLabel.textContent = '£85.00';
     } else {
       routeLabel.textContent = 'Standard UK Resident Director';
-      priceLabel.textContent = '£125.00';
+      priceLabel.textContent = '£49.00';
     }
 
     document.getElementById('idvForm').addEventListener('submit', function(e) {

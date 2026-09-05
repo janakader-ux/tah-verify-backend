@@ -4,7 +4,7 @@ Connect this repository and select production branch `master`. Leave the package
 directory unset. The root `netlify.toml` sets base `.`, build command
 `python3 scripts/build_site.py`, and publish directory `dist`.
 
-Run that command locally to reproduce the static output. Only public HTML is
+Run that command locally to reproduce the static output. Only public HTML and logo assets are
 published. Both `/` and `/apply.html` serve the application directly, including
 requests with `?residency=overseas` or `?route=b2b`. The source `index.html` remains
 a fallback for other static hosts; Netlify no longer relies on its redirect.
@@ -12,7 +12,7 @@ a fallback for other static hosts; Netlify no longer relies on its redirect.
 ## Deployment verification
 
 After merging, check the Netlify deploy log for the new commit and the output
-`Built dist/index.html and dist/apply.html`. Test the Netlify-provided site URL,
+`Built dist/index.html, dist/apply.html and assets`. Test the Netlify-provided site URL,
 then `https://directorpersonalcode.uk` and the `www` hostname. Add both custom
 hostnames to the same Netlify project, verify DNS using the records Netlify
 provides, and confirm the HTTPS certificate covers both. Do not guess DNS targets.
@@ -40,3 +40,11 @@ actual backend URL, allowed frontend origins, and intended pricing before wiring
 up the form: the frontend and backend currently have different route/fee models.
 The existing form-submission conversion event also is not evidence of a successful
 application or payment. No production submissions or payments were made in testing.
+
+## Logo assets
+
+`assets/dpc-logo.webp` is a lossless conversion of the supplied transparent PNG.
+`assets/dpc-logo.svg` is an automatically traced vector version on white; its
+curves and gradients approximate the PNG. The page uses the faithful WebP, and
+the SVG is available as a scalable asset and favicon. Both are copied by the
+static build.

@@ -1,6 +1,6 @@
 """Build only public pages for Netlify; keep backend files out of the publish folder."""
 from pathlib import Path
-from shutil import copyfile, rmtree
+from shutil import copyfile, copytree, rmtree
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "dist"
@@ -15,7 +15,8 @@ def main():
     # Serve the form directly at /, retaining query parameters without redirects.
     (OUTPUT / "index.html").write_text(page, encoding="utf-8")
     copyfile(ROOT / "apply.html", OUTPUT / "apply.html")
-    print("Built dist/index.html and dist/apply.html")
+    copytree(ROOT / "assets", OUTPUT / "assets")
+    print("Built dist/index.html, dist/apply.html and assets")
 
 
 if __name__ == "__main__":

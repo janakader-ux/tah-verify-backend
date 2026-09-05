@@ -25,7 +25,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Director Personal Code Verification | Independent IDVT Service</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script><!-- Conversion Tracking Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Finds any form on apply.html
+    const leadForm = document.querySelector('form');
+    
+    if (leadForm) {
+      leadForm.addEventListener('submit', function() {
+        // Detect tier from URL to pass dynamic conversion value
+        const urlParams = new URLSearchParams(window.location.search);
+        let dynamicValue = 49.0;
+
+        if (urlParams.get('residency') === 'overseas') {
+          dynamicValue = 125.0;
+        } else if (urlParams.get('route') === 'b2b') {
+          dynamicValue = 85.0;
+        }
+
+        // Fire conversion event to Google Ads
+        gtag('event', 'conversion', {
+            'send_to': 'AW-986435073/UElRCPuRle8cEIGcr9YD',
+            'value': dynamicValue,
+            'currency': 'GBP'
+        });
+      });
+    }
+  });
+</script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
 

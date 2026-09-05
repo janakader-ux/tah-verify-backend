@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Staff — Applications | Director Personal Code</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" type="image/svg+xml" href="./images/favicon.svg" />
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700&f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/base.css" />
+<link rel="stylesheet" href="./css/tokens.css" />
+<link rel="stylesheet" href="./css/site.css" />
+<link rel="stylesheet" href="./css/apply.css" />
+<style>
+  .staff-wrap { max-width: 1100px; margin: 0 auto; padding: var(--space-8) var(--space-5); }
+  .staff-login { max-width: 360px; margin: 10vh auto; text-align: center; }
+  .staff-login input { width: 100%; padding: var(--space-3); margin-bottom: var(--space-3); border-radius: var(--radius-md); border: 1px solid oklch(1 0 0 / 0.15); background: oklch(0.16 0.012 255); color: white; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+  th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid oklch(1 0 0 / 0.08); white-space: nowrap; }
+  td.route-cell { white-space: normal; min-width: 220px; }
+  th { color: oklch(0.6 0.01 255); text-transform: uppercase; font-size: var(--text-xs); letter-spacing: 0.04em; }
+  .pill { padding: 2px 10px; border-radius: 999px; font-size: var(--text-xs); font-weight: 700; }
+  .pill--paid, .pill--passed { background: oklch(0.93 0.22 128 / 0.15); color: oklch(0.75 0.22 128); }
+  .pill--pending, .pill--not_started, .pill--manual_action_required { background: oklch(0.8 0.15 85 / 0.15); color: oklch(0.75 0.15 85); }
+  .pill--failed, .pill--expired { background: oklch(0.6 0.2 25 / 0.15); color: oklch(0.7 0.2 25); }
+  .refresh-btn { margin-bottom: var(--space-4); }
+  #tableWrap { overflow-x: auto; }
+  .action-btn {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm, 6px);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid var(--apply-neon);
+    color: var(--apply-neon);
+    background: transparent;
+    margin-right: 6px;
+    white-space: nowrap;
+  }
+  .action-btn:hover { background: oklch(0.93 0.22 128 / 0.1); }
+  .workflow-note {
+    background: oklch(0.16 0.012 255);
+    border: 1px solid oklch(1 0 0 / 0.1);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+    margin-bottom: var(--space-5);
+    font-size: var(--text-sm);
+    color: oklch(0.82 0.01 255);
+  }
+  .workflow-note strong { color: oklch(0.95 0.006 255); }
+</style>
+</head>
+<body data-theme="dark">
+  <div class="staff-wrap">
+    <div id="loginBox" class="staff-login">
+      <h1 style="font-family:var(--font-display); margin-bottom: var(--space-2);">Director Personal Code — staff sign-in</h1>
+      <p style="font-size:var(--text-sm); margin-bottom:var(--space-4);">Director Personal Code is the Companies House identity verification service of Tax And Accounting Hub Ltd, a Companies House Authorised Corporate Service Provider.</p>
+      <input type="password" id="passcode" placeholder="Passcode" autocomplete="off" />
+      <button type="button" class="btn btn-apply-primary" id="loginBtn" style="width:100%;">View applications</button>
+      <p id="loginError" style="color: oklch(0.7 0.2 25); margin-top: var(--space-3);"></p>
+    </div>
+
+    <div id="dashboard" hidden>
+      <h1 style="font-family:var(--font-display); margin-bottom: var(--space-2);">Director Personal Code — Applications</h1>
+      <div class="workflow-note">
+        <p style="margin-bottom: var(--space-3);"><strong>Online / remote route (TrustID Guest Link):</strong> as soon as Payment shows Paid, the backend automatically logs into TrustID and emails the applicant their Guest Link — no staff action needed. The “Verification” column shows the outcome (“link sent” = done). Only use “Copy details” / “Open TrustID” as a manual fallback if that column shows an error or “manual action required”.</p>
+        <p style="margin: 0;"><strong>In-person / manual route (appointment):</strong> once Payment shows Paid, call or email the applicant on the details shown to confirm the exact date/time against their preferred date and time window, at the office they selected. Remind them what to bring/post per the office notes on the application. Once verification passes, complete the Companies House / GOV.UK manual portal entry — there is no public API for that step either.</p>
+      </div>
+      <button type="button" class="btn btn-secondary-apply refresh-btn" id="refreshBtn">Refresh</button>
+      <button type="button" class="btn btn-secondary-apply refresh-btn" id="testEmailBtn" style="margin-left:8px;">Send test notification email</button>
+      <span id="testEmailStatus" style="margin-left:10px; font-size:0.9em;"></span>
+      <div id="tableWrap"></div>
+    </div>
+
+    <div id="detailOverlay" hidden style="position:fixed; inset:0; background:oklch(0 0 0 / 0.6); z-index:50; display:flex; align-items:flex-start; justify-content:center; padding: 5vh 16px; overflow-y:auto;">
+      <div style="background:oklch(0.16 0.012 255); border:1px solid oklch(1 0 0 / 0.12); border-radius:var(--radius-lg); max-width:640px; width:100%; padding: var(--space-6);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-4);">
+          <h2 id="detailTitle" style="font-family:var(--font-display); margin:0; font-size: var(--text-lg);"></h2>
+          <button type="button" id="detailClose" class="action-btn">Close</button>
+        </div>
+        <div id="detailBody" style="font-size: var(--text-sm);"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const API = '__PORT_8000__'.startsWith('__') ? 'https://tah-verify-backend.onrender.com' : '__PORT_8000__';
+  let passcode = '';
+
+  // The passcode is sent as a request header rather than in the query string.
+  // Query strings are recorded in web-server access logs, reverse-proxy logs
+  // and browser history, so a URL-borne secret outlives the request that used
+  // it; header values are not logged that way.
+  //
+  // HTTP header values cannot carry characters outside printable ASCII, and the
+  // browser throws if asked to send one. So if the passcode contains anything
+  // outside that range we fall back to the legacy query parameter instead of
+  // failing the sign-in. The backend accepts either transport, so this can
+  // never lock staff out of the dashboard.
+  const PASSCODE_HEADER = 'X-Staff-Passcode';
+
+  function headerSafe(value) {
+    return /^[\x20-\x7E]*$/.test(value);
+  }
+
+  function authedFetch(path, options) {
+    const opts = Object.assign({}, options || {});
+    if (headerSafe(passcode)) {
+      opts.headers = Object.assign({}, opts.headers || {});
+      opts.headers[PASSCODE_HEADER] = passcode;
+      return fetch(API + path, opts);
+    }
+    const sep = path.indexOf('?') === -1 ? '?' : '&';
+    return fetch(API + path + sep + 'passcode=' + encodeURIComponent(passcode), opts);
+  }
+
+  const loginBox = document.getElementById('loginBox');
+  const dashboard = document.getElementById('dashboard');
+  const loginError = document.getElementById('loginError');
+
+  const testEmailBtn = document.getElementById('testEmailBtn');
+  const testEmailStatus = document.getElementById('testEmailStatus');
+  if (testEmailBtn) {
+    testEmailBtn.addEventListener('click', async () => {
+      testEmailStatus.textContent = 'Sending…';
+      testEmailStatus.style.color = '';
+      try {
+        const res = await authedFetch('/api/diagnostics/send-test-email', { method: 'POST' });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.detail || ('HTTP ' + res.status));
+        }
+        testEmailStatus.textContent = 'Sent — check info@taxandaccountinghub.com (and spam) within a minute.';
+        testEmailStatus.style.color = 'oklch(0.55 0.15 150)';
+      } catch (err) {
+        testEmailStatus.textContent = 'Failed: ' + err.message;
+        testEmailStatus.style.color = 'oklch(0.7 0.2 25)';
+      }
+    });
+  }
+
+  async function loadApplications() {
+    const res = await authedFetch('/api/applications');
+    if (!res.ok) {
+      throw new Error('unauthorized');
+    }
+    return res.json();
+  }
+
+  const TRUSTID_GUEST_LINK_URL = 'https://cloud.trustid.co.uk/#/home/newguestLink/addGuestDetail';
+  const OFFICE_LABELS = {
+    london: 'London — Hallings Wharf Studios, 1A Cam Road, London, E15 2SY',
+    bedford: 'Bedford — 11 Holbeach Avenue, Shortstown, Bedford, MK42 0EG',
+  };
+  const APPT_TYPE_LABELS = {
+    'in-person': 'In-person appointment',
+  };
+
+  function escHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function pill(status) {
+    const safe = escHtml(status || '');
+    return '<span class="pill pill--' + safe + '">' + safe.replace(/_/g, ' ') + '</span>';
+  }
+
+  function routeCell(r) {
+    if (r.route === 'online') return 'Online / remote';
+    if (r.route === 'in-person') {
+      const parts = [];
+      if (r.appointment_type) parts.push(escHtml(APPT_TYPE_LABELS[r.appointment_type] || r.appointment_type));
+      if (r.appointment_office) parts.push(OFFICE_LABELS[r.appointment_office] ? r.appointment_office.charAt(0).toUpperCase() + r.appointment_office.slice(1) : escHtml(r.appointment_office));
+      if (r.appointment_date) parts.push(escHtml(r.appointment_date));
+      if (r.appointment_time_pref) parts.push(escHtml(r.appointment_time_pref));
+      return 'In-person / appointment<br><span class="field-help" style="margin:0;">' + parts.join(' · ') + '</span>';
+    }
+    return '—';
+  }
+
+  // actionsCell no longer builds an inline onclick string (that was the XSS
+  // vector — untrusted applicant fields flowed into an HTML attribute).
+  // Instead it renders a plain button carrying the copy text in a data-
+  // attribute (browsers treat dataset values as text, never as markup) and a
+  // single delegated click handler below reads that attribute.
+  function actionsCell(r) {
+    const deleteBtn = '<button type="button" class="action-btn delete-btn" data-case-ref="' + escHtml(r.case_ref) + '" style="border-color: oklch(0.6 0.2 25); color: oklch(0.7 0.2 25);">Delete</button>';
+    const viewBtn = '<button type="button" class="action-btn view-btn" data-case-ref="' + escHtml(r.case_ref) + '">View</button>';
+    if (r.route === 'online') {
+      const detail = 'First: ' + (r.first_name || '') + ' | Last: ' + (r.last_name || '') + ' | Email: ' + (r.email || '') + ' | Reference: ' + r.case_ref;
+      return viewBtn + '<button type="button" class="action-btn copy-details-btn" data-copy="' + escHtml(detail) + '">Copy details</button>' +
+        '<a class="action-btn" href="' + TRUSTID_GUEST_LINK_URL + '" target="_blank" rel="noopener">Open TrustID</a>' + deleteBtn;
+    }
+    if (r.route === 'in-person') {
+      return viewBtn + '<span class="field-help" style="margin:0;">Confirm by phone/email</span>' + deleteBtn;
+    }
+    return viewBtn + deleteBtn;
+  }
+
+  // Full detail view — the table row only shows a summary, but the wizard
+  // actually collects a lot more (DOB, nationality, addresses, mobile,
+  // company name/number, and the signed engagement letter's name/date/IP/
+  // signature image). That data is now stored on every application record;
+  // this modal is where staff can actually see all of it, not just what fits
+  // in the table columns.
+  function detailRows(r) {
+    const rows = [
+      ['Case reference', r.case_ref], ['Role', r.role], ['Full name', r.full_name],
+      ['Former name(s)', r.former_names || 'None'], ['Date of birth', r.dob], ['Nationality', r.nationality],
+      ['Country of residence', r.residence_country], ['Home address', r.home_address],
+      ['At address since', r.address_since], ['Previous address', r.previous_address || 'N/A'],
+      ['Email', r.email], ['Mobile', r.mobile], ['Company name', r.company_name],
+      ['Company number', r.company_number], ['Role (confirmed)', r.role_confirm],
+      ['Fee', r.fee_amount ? ('£' + r.fee_amount) : ''], ['Verification route', r.route],
+      ['Payment status', r.payment_status], ['Verification status', r.verification_status],
+      ['Verification notes', r.verification_notes || ''],
+      ['Engagement letter signed by', r.sign_name], ['Signed on', r.sign_date],
+      ['Signing IP', r.sign_ip || 'Not available'], ['Created', r.created_at],
+    ];
+    let html = rows.map(([k, v]) => '<div style="display:flex; gap:12px; padding:6px 0; border-bottom:1px solid oklch(1 0 0 / 0.06);"><div style="flex:0 0 190px; color:oklch(0.6 0.01 255);">' + escHtml(k) + '</div><div style="flex:1;">' + escHtml(v || '—') + '</div></div>').join('');
+    if (r.signature_data) {
+      html += '<div style="margin-top:12px;"><div style="color:oklch(0.6 0.01 255); margin-bottom:6px;">Signature</div><img src="' + r.signature_data + '" alt="Applicant signature" style="max-width:100%; background:white; border-radius:6px;" /></div>';
+    }
+    return html;
+  }
+
+  // Every applicant-controlled field (case_ref, name, email, created_at is
+  // server-generated so lower risk but escaped anyway) is HTML-escaped before
+  // being placed in the table. This closes the stored-XSS path where a
+  // malicious application submission (e.g. a name containing a <script> tag)
+  // would otherwise execute in the staff member's browser when viewed here.
+  function render(rows) {
+    if (!rows.length) {
+      document.getElementById('tableWrap').innerHTML = '<p class="field-help">No applications yet.</p>';
+      return;
+    }
+    const html = '<table><thead><tr>' +
+      '<th>Case ref</th><th>Name</th><th>Email</th><th>Fee</th><th>Route / appointment</th><th>Payment</th><th>Provider</th><th>Verification</th><th>Action</th><th>Submitted</th><th>Created</th>' +
+      '</tr></thead><tbody>' +
+      rows.map((r) => '<tr>' +
+        '<td>' + escHtml(r.case_ref) + '</td>' +
+        '<td>' + escHtml(r.full_name || [r.first_name, r.last_name].filter(Boolean).join(' ') || '') + '</td>' +
+        '<td>' + escHtml(r.email || '') + '</td>' +
+        '<td>£' + escHtml(r.fee_amount) + '</td>' +
+        '<td class="route-cell">' + routeCell(r) + '</td>' +
+        '<td>' + pill(r.payment_status) + '</td>' +
+        '<td>' + (r.payment_provider ? escHtml(r.payment_provider.charAt(0).toUpperCase() + r.payment_provider.slice(1)) : '—') + '</td>' +
+        '<td>' + pill(r.verification_status) + '</td>' +
+        '<td>' + actionsCell(r) + '</td>' +
+        '<td>' + (r.submitted ? 'Yes' : 'No') + '</td>' +
+        '<td>' + escHtml(r.created_at) + '</td>' +
+      '</tr>').join('') +
+      '</tbody></table>';
+    document.getElementById('tableWrap').innerHTML = html;
+
+    document.querySelectorAll('.copy-details-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.copy || '');
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    });
+
+    document.querySelectorAll('.view-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const r = rows.find((x) => x.case_ref === btn.dataset.caseRef);
+        if (!r) return;
+        document.getElementById('detailTitle').textContent = 'Application ' + r.case_ref;
+        document.getElementById('detailBody').innerHTML = detailRows(r);
+        document.getElementById('detailOverlay').hidden = false;
+      });
+    });
+
+    document.querySelectorAll('.delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const caseRef = btn.dataset.caseRef || '';
+        if (!window.confirm('Permanently delete application "' + caseRef + '"? This cannot be undone.')) return;
+        btn.disabled = true;
+        btn.textContent = 'Deleting…';
+        try {
+          const res = await authedFetch('/api/applications/' + encodeURIComponent(caseRef), { method: 'DELETE' });
+          if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            throw new Error(body.detail || ('HTTP ' + res.status));
+          }
+          render(await loadApplications());
+        } catch (e) {
+          alert('Delete failed: ' + e.message);
+          btn.disabled = false;
+          btn.textContent = 'Delete';
+        }
+      });
+    });
+  }
+
+  document.getElementById('detailClose').addEventListener('click', () => { document.getElementById('detailOverlay').hidden = true; });
+  document.getElementById('detailOverlay').addEventListener('click', (e) => { if (e.target.id === 'detailOverlay') document.getElementById('detailOverlay').hidden = true; });
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    passcode = document.getElementById('passcode').value;
+    try {
+      const rows = await loadApplications();
+      loginBox.hidden = true;
+      dashboard.hidden = false;
+      render(rows);
+    } catch (e) {
+      loginError.textContent = 'Incorrect passcode, or the backend is unavailable.';
+    }
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    try {
+      render(await loadApplications());
+    } catch (e) {
+      loginError.textContent = 'Session expired, please sign in again.';
+      dashboard.hidden = true;
+      loginBox.hidden = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>

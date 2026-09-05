@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment received | Director Personal Code</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/svg+xml" href="./images/favicon.svg" />
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700&f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./css/base.css" />
+<link rel="stylesheet" href="./css/tokens.css" />
+<link rel="stylesheet" href="./css/site.css" />
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: var(--space-6); }
+  .complete-card { max-width: 520px; }
+  .complete-card__icon { font-size: 3rem; margin-bottom: var(--space-4); }
+  .complete-card h1 { font-family: var(--font-display); font-size: var(--text-xl); margin-bottom: var(--space-3); }
+  .complete-card p { color: oklch(0.55 0.01 255); margin-bottom: var(--space-5); }
+  .complete-card__next { text-align: left; margin: 0 0 var(--space-5); }
+  .complete-card__next h2 { font-family: var(--font-display); font-size: var(--text-md, 1.0625rem); margin-bottom: var(--space-3); }
+  .complete-card__next ul { margin: 0; padding-left: 1.25rem; }
+  .complete-card__next li { color: oklch(0.55 0.01 255); margin-bottom: var(--space-3); line-height: 1.6; }
+  .complete-card__next li:last-child { margin-bottom: 0; }
+  /* base.css resets links to color:inherit/no-underline, and this page does not
+     load apply.css, so links here would otherwise be indistinguishable from the
+     body text. Matches the site's convention for links on a dark surface. */
+  .complete-card a { color: var(--color-gold); text-decoration: underline; text-underline-offset: 2px; }
+  .complete-card a:hover { color: var(--color-gold-hover); }
+  .complete-card__home { margin-top: var(--space-5); }
+</style>
+</head>
+<body data-theme="dark">
+  <div class="complete-card">
+    <div class="complete-card__icon" aria-hidden="true">✅</div>
+    <h1>Payment received — thank you</h1>
+    <p>Your payment is confirmed and your identity verification case is now open. This happens automatically, so there is nothing further to do on this page. We have emailed you a confirmation containing your case reference — please keep it.</p>
+
+    <div class="complete-card__next">
+      <h2>What happens next</h2>
+      <ul>
+        <li><strong>If you chose the online ID check:</strong> TrustID, our identity verification provider, will email you a secure link to complete your check — usually within a few minutes. Open it on a phone with a camera and have your passport or driving licence to hand. If you cannot find it, please check your spam or junk folder, as it is sent by TrustID rather than by us.</li>
+        <li><strong>If you chose an in-person appointment:</strong> return to your application tab to pick your office and preferred date. If you have already closed it, no problem — email us and we will arrange your slot.</li>
+      </ul>
+    </div>
+
+    <p class="field-help">Any questions, email <a href="mailto:info@taxandaccountinghub.com">info@taxandaccountinghub.com</a> quoting your case reference. Your payment and details are already saved securely on our side.</p>
+    <p class="complete-card__home"><a href="./index.html">Return to Director Personal Code</a></p>
+
+    <p class="field-help">Director Personal Code is the Companies House identity verification service of Tax &amp; Accounting Hub Ltd, a Companies House Authorised Corporate Service Provider.</p>
+  </div>
+</body>
+</html>

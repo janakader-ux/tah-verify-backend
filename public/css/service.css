@@ -1,0 +1,145 @@
+/* service.css — acsp-service.html specific layout */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-6);
+}
+.breadcrumb a {
+  color: var(--color-text-faint);
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: var(--color-primary);
+}
+
+.svc-hero {
+  padding-block: clamp(var(--space-12), 7vw, var(--space-20)) clamp(var(--space-10), 5vw, var(--space-16));
+}
+.svc-hero__grid {
+  display: grid;
+  gap: clamp(var(--space-10), 6vw, var(--space-16));
+  align-items: center;
+  grid-template-columns: 1.1fr 1fr;
+}
+@media (max-width: 900px) {
+  .svc-hero__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.svc-hero h1 {
+  font-size: var(--text-2xl);
+  margin-block: var(--space-4) var(--space-5);
+  letter-spacing: -0.01em;
+  max-width: 18ch;
+}
+.svc-hero__lead {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  max-width: 50ch;
+}
+.svc-hero__art img {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+}
+
+/* ---------- Who grid (service page variant) ---------- */
+.who-grid-svc {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(3, 1fr);
+  list-style: none;
+}
+@media (max-width: 900px) {
+  .who-grid-svc {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .who-grid-svc {
+    grid-template-columns: 1fr;
+  }
+}
+.who-grid-svc li {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.who-grid-svc h3 {
+  font-size: var(--text-base);
+  margin-bottom: var(--space-1);
+}
+.who-grid-svc p {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Route card extras ---------- */
+.route-card__subhead {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
+  font-weight: 650;
+  margin-top: var(--space-2);
+}
+.route-card__process {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+  margin-top: auto;
+}
+.route-card__grouplabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-3);
+  margin-bottom: calc(-1 * var(--space-1));
+}
+.route-card__grouplabel strong {
+  color: var(--color-text);
+}
+.route-card__note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ---------- Data protection strip ---------- */
+.data-strip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-6);
+  align-items: start;
+  padding: var(--space-8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+@media (max-width: 600px) {
+  .data-strip {
+    grid-template-columns: 1fr;
+  }
+}
+.data-strip svg {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
+}
+.data-strip h2 {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-3);
+}
+.data-strip p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+.data-strip a {
+  color: var(--color-primary);
+  font-weight: 600;
+}

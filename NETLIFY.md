@@ -1,50 +1,38 @@
-# Netlify deployment
+# Director Personal Code deployment
 
-Connect this repository and select production branch `master`. Leave the package
-directory unset. The root `netlify.toml` sets base `.`, build command
-`python3 scripts/build_site.py`, and publish directory `dist`.
+The original marketing website and nine-step application wizard live in `public/`.
+Netlify publishes that directory as a static site with no build command. The root
+Python application continues to run on Render; it is not part of the public site.
 
-Run that command locally to reproduce the static output. Only public HTML and logo assets are
-published. Both `/` and `/apply.html` serve the application directly, including
-requests with `?residency=overseas` or `?route=b2b`. The source `index.html` remains
-a fallback for other static hosts; Netlify no longer relies on its redirect.
+## Recovery provenance
 
-## Deployment verification
+Recovered from the supplied `HANDOFF-directorpersonalcode-source.zip` and the
+2 September 2026 Netlify deployment `6a9895e4b3f3fdebdedbe1c2`.
+All 61 original HTML pages, CSS, JavaScript, crawler files and `_headers` are restored.
+54 missing images, posters and video files were recovered from that immutable deploy.
+Their hashes are recorded in `recovery-media-manifest.json`.
 
-After merging, check the Netlify deploy log for the new commit and the output
-`Built dist/index.html, dist/apply.html and assets`. Test the Netlify-provided site URL,
-then `https://directorpersonalcode.uk` and the `www` hostname. Add both custom
-hostnames to the same Netlify project, verify DNS using the records Netlify
-provides, and confirm the HTTPS certificate covers both. Do not guess DNS targets.
+The original visual design and inline brand mark are preserved. The newer supplied
+logo files remain available in `public/assets/dpc-logo.svg` and `.webp` for future use.
+The original application JavaScript calls the existing Render backend and uses the
+original UK online £49, UK in-person £125 and overseas £175 pricing matrix.
+Backend code, database, environment variables and payment credentials are unchanged.
 
-## Findings and remaining blockers
+## Correct deployment settings
 
-On 5 September 2026 the public non-www homepage and `/apply.html` could be
-retrieved. The homepage was a redirect stub. The www lookup could not be verified.
-GitHub's latest test passed; no Netlify commit status was reported. Without the
-Netlify deploy log, an account-level build, domain, or TLS failure is unconfirmed.
+- Repository: `janakader-ux/tah-verify-backend`
+- Production branch: `master`
+- Base directory: repository root
+- Build command: empty
+- Publish directory: `public`
 
-The application HTML had duplicate document/head openings and duplicate Google
-tag initialization; these are corrected. Browsers often recover from malformed
-HTML, so this alone does not establish the cause of an outage.
+The earlier recovery published a placeholder form from the backend repository.
+Those root placeholder HTML files and the temporary static build script are removed
+to avoid accidentally deploying them again. Always deploy `public/` in full.
+Do not publish internal handoff documents, backend files or database exports.
 
-This repository does not contain the original marketing homepage or the full
-application wizard mentioned in backend comments. Its application submit handler
-only shows an alert and sends no request. Restoring a full verification journey
-requires the original frontend or a separately implemented and tested integration.
-Do not regard loading the static form as working payment or identity verification.
+## Validation limits
 
-The Python FastAPI service is configured by `render.yaml` for Render, including
-persistent data storage. This Netlify build does not run that API. Confirm the
-actual backend URL, allowed frontend origins, and intended pricing before wiring
-up the form: the frontend and backend currently have different route/fee models.
-The existing form-submission conversion event also is not evidence of a successful
-application or payment. No production submissions or payments were made in testing.
-
-## Logo assets
-
-`assets/dpc-logo.webp` is a lossless conversion of the supplied transparent PNG.
-`assets/dpc-logo.svg` is an automatically traced vector version on white; its
-curves and gradients approximate the PNG. The page uses the faithful WebP, and
-the SVG is available as a scalable asset and favicon. Both are copied by the
-static build.
+Check the homepage, application wizard navigation, representative content pages,
+images and videos after deployment. No real applicant data, payments, emails or
+identity checks should be submitted just to verify a frontend recovery.

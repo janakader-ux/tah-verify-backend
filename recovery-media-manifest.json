@@ -1,0 +1,272 @@
+[
+  {
+    "path": "assets/video/how-it-works.mp4",
+    "bytes": 7004313,
+    "sha256": "9f2b5af2522c005617f0fe13f5d1f9c9957db4638caa2c1b9eb717040d109c45"
+  },
+  {
+    "path": "assets/video/poster.jpg",
+    "bytes": 60489,
+    "sha256": "a66e17f6a2a7202c1bc107add44bfb367aa4aff52b7f7915234e1fd6c1abcc03"
+  },
+  {
+    "path": "assets/video/poster.webp",
+    "bytes": 24660,
+    "sha256": "a9478bda781456e0bd099aee6c18e36572f3a0cb717714cbc92723ad6846013d"
+  },
+  {
+    "path": "assets/video/who-needs-a-code-poster.jpg",
+    "bytes": 61077,
+    "sha256": "79f5115f5baabe825f128eb17ef8afe624088412ece62c98a59967707f44fab1"
+  },
+  {
+    "path": "assets/video/who-needs-a-code-poster.webp",
+    "bytes": 25030,
+    "sha256": "4e29c8daa85822049480210c7d451077d0b186b1ae8d99cdad7921b56cac7e50"
+  },
+  {
+    "path": "assets/video/who-needs-a-code.mp4",
+    "bytes": 9167487,
+    "sha256": "fd9df62789a97ba89b42646ad3f851efe2ba72285ac3a383385b0dda59edfa41"
+  },
+  {
+    "path": "images/card-choosing-agent.png",
+    "bytes": 158425,
+    "sha256": "28950657cbe893d86b9e9fc2feee9f96744e0f99915505659eaa68fcd9b24693"
+  },
+  {
+    "path": "images/card-choosing-agent.webp",
+    "bytes": 34698,
+    "sha256": "aac1b9de40ae64ba9547d24065e5a57c3a9dcd36fe85558cffb237ba5060b909"
+  },
+  {
+    "path": "images/card-costtime.png",
+    "bytes": 214687,
+    "sha256": "04e0a3aa6cc78b2784eb96e51bcd884c2c96352b6bd0ecdb3a28f2de5f3ede1e"
+  },
+  {
+    "path": "images/card-costtime.webp",
+    "bytes": 25698,
+    "sha256": "50dbc446e43e0a66de57c25c7f3a9f614d203ae097a8d27fc335d327cd978c1e"
+  },
+  {
+    "path": "images/card-deadline.png",
+    "bytes": 134131,
+    "sha256": "873abc521e5adc9a35caa1ff2381ff36400fea699810a0193e08a9c854e9c640"
+  },
+  {
+    "path": "images/card-deadline.webp",
+    "bytes": 20554,
+    "sha256": "2fc31a55d7b232e402c9c43687feab77295c6d05d9b2e26f230436de2843bdcb"
+  },
+  {
+    "path": "images/card-digitalid.png",
+    "bytes": 137367,
+    "sha256": "9daf85087a4713d17477fea83bf12ffe540f4dc62a48eeb867b6ffa006bb308b"
+  },
+  {
+    "path": "images/card-digitalid.webp",
+    "bytes": 18390,
+    "sha256": "9717a4c774111d6a838f281b32a867c8510d19858827a95fd67a7ddbea614816"
+  },
+  {
+    "path": "images/card-documents.png",
+    "bytes": 140414,
+    "sha256": "f09a014949425e9e230427c2180b34edd814b704b9eec536834776dd1ddbab52"
+  },
+  {
+    "path": "images/card-documents.webp",
+    "bytes": 36986,
+    "sha256": "6e19e7f07cdcc28a798a19a3af5d27fd2a63b738b3b5b2265fed50ee0147d048"
+  },
+  {
+    "path": "images/card-faq.png",
+    "bytes": 158447,
+    "sha256": "07e99f539b1e1d91d51bf542238de40f4d547e551d6d756f23d1a08573bc8c03"
+  },
+  {
+    "path": "images/card-faq.webp",
+    "bytes": 19710,
+    "sha256": "3bfb417f280c79d623463da6853d0aacc749fb3ff88db3cfda96693001628293"
+  },
+  {
+    "path": "images/card-incorporation.png",
+    "bytes": 147392,
+    "sha256": "81e9fb7b335a976aed89312c4cef2f7f164de45d671cbff0b8f2389649a77adc"
+  },
+  {
+    "path": "images/card-incorporation.webp",
+    "bytes": 47294,
+    "sha256": "d688d9474d299095c4b1be19630475cb652ad118afe695b2095c1f8c370b0b51"
+  },
+  {
+    "path": "images/card-onecode.png",
+    "bytes": 183351,
+    "sha256": "5a0c7d18207f141a3024f93c3367f69ae8b14396554e457ce83a4f3a87f09bf0"
+  },
+  {
+    "path": "images/card-onecode.webp",
+    "bytes": 34706,
+    "sha256": "f51956ce84e15cde5615085349c7b3c5b6bbc290bcfc2ecdef6f709ec2fdf0da"
+  },
+  {
+    "path": "images/card-overseas.png",
+    "bytes": 244860,
+    "sha256": "944e59fb0d708cf6183bd98d78e701a2686e84500a02926020a74a83ae40fcc3"
+  },
+  {
+    "path": "images/card-overseas.webp",
+    "bytes": 33868,
+    "sha256": "b46231ce8967611b376d78f381c032040cabb979522d0e9b31b41bb4178ca6e5"
+  },
+  {
+    "path": "images/card-penalties.png",
+    "bytes": 145915,
+    "sha256": "6eb350d5638fa49a55dafca207d45aec3881d02048c0e9d519cd189a6405a3ea"
+  },
+  {
+    "path": "images/card-penalties.webp",
+    "bytes": 29118,
+    "sha256": "ee2159ce6d2e2972514e2c3d1969773415418b4fa96a12dcabf526204bfefafd"
+  },
+  {
+    "path": "images/card-registration-guide.png",
+    "bytes": 198546,
+    "sha256": "1a4fb332a0e7c01a13374dda281cfe00c9bfc319b59566f4d601e2128ad69a3d"
+  },
+  {
+    "path": "images/card-registration-guide.webp",
+    "bytes": 20418,
+    "sha256": "727f6b2d139fb61d704e9b66ab1483f87e212b54111fd271a60b76b9c2311fa4"
+  },
+  {
+    "path": "images/card-vsgovuk.png",
+    "bytes": 147151,
+    "sha256": "444f9c63a82d6adeeb4e06ebdeb485a18752279936a8b4d77cc582a155964770"
+  },
+  {
+    "path": "images/card-vsgovuk.webp",
+    "bytes": 24238,
+    "sha256": "6dc2d725a87c2e5a92b20ae71140b9270ce099473bea0fb6678fd567ae32960b"
+  },
+  {
+    "path": "images/favicon-192.png",
+    "bytes": 5141,
+    "sha256": "2b7f70ac8d2a62501b5694a59bb847b18987522b2ccb7d2ef04a11d41b696976"
+  },
+  {
+    "path": "images/favicon-32.png",
+    "bytes": 975,
+    "sha256": "21d6c7442e24bf271b8151da766af82723ef4381ee5dca08e9b7616a8ae502a1"
+  },
+  {
+    "path": "images/guide-hero.png",
+    "bytes": 106313,
+    "sha256": "aaa4a72ad1b905b204f49b44c916efa1df0374313dc2fee2ba79ce9bafda8bdc"
+  },
+  {
+    "path": "images/guide-hero.webp",
+    "bytes": 23704,
+    "sha256": "656d586d626577e424733c980cb6418aa3fa0a9fc1a027588075d164dff4299d"
+  },
+  {
+    "path": "images/hero-verification-abstract.png",
+    "bytes": 221563,
+    "sha256": "69c4b57d1a2f075fdf3ba1e6787de5b5de4d4dd6244963e9560dac1f45114e6e"
+  },
+  {
+    "path": "images/hero-verification-abstract.webp",
+    "bytes": 67664,
+    "sha256": "0e9685d0b6e6f98ffe7b41a41b1cde9db33961469929c8ab689d4aeb50fc87ac"
+  },
+  {
+    "path": "images/icon-compliance-review.png",
+    "bytes": 17074,
+    "sha256": "802284816180eea76d4be531c2d2703b627a8df60134f9599c4922a021fb761e"
+  },
+  {
+    "path": "images/icon-compliance-review.webp",
+    "bytes": 7118,
+    "sha256": "6643d8a6ca0e2cbda652db529602370ec30569c4a664b4d3ab6a6ef75f85ec2a"
+  },
+  {
+    "path": "images/icon-data-documents.png",
+    "bytes": 10347,
+    "sha256": "1eb5ff13b7d9e2f3f5da2c3c9e009b1af3a0a57b5056ff1e33cb59bdf0219ce4"
+  },
+  {
+    "path": "images/icon-data-documents.webp",
+    "bytes": 4836,
+    "sha256": "bb10ffd8149cde6c0eb83b7447581d59a58e9a43e371bfbec1c62ff0cd13dcb2"
+  },
+  {
+    "path": "images/icon-payment-card.png",
+    "bytes": 11584,
+    "sha256": "4b3659c75cd1bb85da84ee64646795d990b5e83ea672e80f44815498e10de346"
+  },
+  {
+    "path": "images/icon-payment-card.webp",
+    "bytes": 4710,
+    "sha256": "95144d3435c24b7d9a3bfc45685f913a524930c1923947da88b055f3406be659"
+  },
+  {
+    "path": "images/icon-personal-code.png",
+    "bytes": 26166,
+    "sha256": "42055178a332af4a9366ac5bd49b6b786df8bb1c7e9b5ac00cc8cf5e72ff870d"
+  },
+  {
+    "path": "images/icon-personal-code.webp",
+    "bytes": 10868,
+    "sha256": "705ccc47d2251eba8dbe3ede7bc32e39f90abc04b5bc5f8ee2105b58fe0e25e2"
+  },
+  {
+    "path": "images/icon-sign-pay.png",
+    "bytes": 8292,
+    "sha256": "6d2234b89381c98df80686d278cd4320fd0323ee5657249a6e054e8699caf6cc"
+  },
+  {
+    "path": "images/icon-sign-pay.webp",
+    "bytes": 3878,
+    "sha256": "0e597cd0da6bd4b58bce29f63e00b735a18399d4c83f4f99bc25b5bc0603e192"
+  },
+  {
+    "path": "images/icon-submission-ch.png",
+    "bytes": 7761,
+    "sha256": "4b6554330af9e1deedba8bf708fb1493b8813422d8ac6efd39a70116284ed887"
+  },
+  {
+    "path": "images/icon-submission-ch.webp",
+    "bytes": 4478,
+    "sha256": "d29084fb7fd742d41fe2145f2ab5360cff0a12dcca81a6a512e672bb848c34c2"
+  },
+  {
+    "path": "images/icon-submit-verified.png",
+    "bytes": 5436,
+    "sha256": "c1ee72678cf4c4b8ac49c063257e643871caa2c075b9a4b3429bb7c1b2668224"
+  },
+  {
+    "path": "images/icon-submit-verified.webp",
+    "bytes": 2964,
+    "sha256": "d5774e9951dd07732aa9f6065307fe889e5837898c52c0da04ef6666aee9ab84"
+  },
+  {
+    "path": "images/icon-verify-identity.png",
+    "bytes": 22035,
+    "sha256": "4aa2cfe34d2a431589f6cdd3e86479fb5d1d189f813e519a01fa78fd7c951ce5"
+  },
+  {
+    "path": "images/icon-verify-identity.webp",
+    "bytes": 9068,
+    "sha256": "b2eb132034cdbcabb384e8360999c0207b391d75ff16a27404c01a3878670ca4"
+  },
+  {
+    "path": "images/service-verification-abstract.png",
+    "bytes": 136209,
+    "sha256": "bccbd01264f0d01b9410232f97c609a5a7bde346d2aa61d5e015915ba0f4f621"
+  },
+  {
+    "path": "images/service-verification-abstract.webp",
+    "bytes": 25558,
+    "sha256": "6156bb244c8972c366e2b2492cfcb4dda466e13eb1a728eba6e219ff22932bf6"
+  }
+]

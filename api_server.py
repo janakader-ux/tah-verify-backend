@@ -1084,7 +1084,9 @@ def create_payment(
         return {"checkout_id": record["payment_checkout_id"], "hosted_checkout_url": record["payment_url"], "provider": record.get("payment_provider")}
 
     body = request_body or {}
-    origin = "https://directorpersonalcode.uk"
+    # Deployment-owned setting: keep sandbox checkout returns on the test site.
+    # Never accept a redirect origin supplied by an applicant.
+    origin = os.environ.get("PUBLIC_SITE_ORIGIN", "https://directorpersonalcode.uk").rstrip("/")
     redirect_url = f"{origin}/payment-complete.html" if origin else None
 
     if STRIPE_TOKEN:

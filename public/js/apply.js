@@ -132,6 +132,7 @@
   document.querySelector('[data-action="begin"]').addEventListener('click', () => showStep(2));
   nextBtn.addEventListener('click', goNext);
   backBtn.addEventListener('click', goBack);
+  form.addEventListener('submit', event => { event.preventDefault(); if (state.step !== 6) goNext(); });
 
   /* ---------------- Validation per step ---------------- */
 
@@ -828,7 +829,7 @@
     const paidByCard = state.paymentStatus === 'paid';
     if (state.route === 'online') {
       msg.textContent = paidByCard
-        ? "Thank you — your card payment is confirmed and your application is with our team. We'll email you a secure link to complete your online identity check within 1 working day."
+        ? "Thank you — your card payment is confirmed and your application is with our team. TrustID sends your secure guest link by email after payment. Check your inbox and spam folder; contact our team if it has not arrived within 10 minutes. After your check, our team reviews the result before the Companies House submission."
         : "Thank you — your application is with our team. Once your bank transfer clears (using the reference shown on the payment step), we'll email you a secure link to complete your online identity check within 1 working day.";
     } else {
       msg.textContent = paidByCard

@@ -11,3 +11,5 @@ TrustID result notifications now use documented per-Guest-Link callback URLs and
 Sources: https://developer.trustid.co.uk/documentation/topics/guestLink.html and https://developer.trustid.co.uk/documentation/topics/webhookcallback4.html
 
 Production-provider limitations: dummy tests cannot certify real Stripe charges, TrustID account permissions, guest-link email delivery or provider callbacks. A controlled provider transaction is required for that sign-off. No real charges, identity submissions or diagnostic emails were sent during these tests.
+
+Browser preview: all four categories reached final confirmation with dummy paid status and zero document-upload inputs. Missing role, route, first name and invalid email were blocked with named prompts. Declined dummy payment stayed locked. Both office requests completed. Mobile 390px navigation and missing-role prompt passed. Production fixtures remain excluded.

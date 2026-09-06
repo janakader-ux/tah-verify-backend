@@ -1,0 +1,434 @@
+{
+  "provenance": "AI-generated illustrative models; not actual staff, clients or office photographs. Created with built-in image generation.",
+  "pages": [
+    {
+      "page": "bulk-verification.html",
+      "images": [
+        "bulk"
+      ],
+      "social_image": "bulk"
+    },
+    {
+      "page": "staff.html",
+      "images": [],
+      "social_image": "hero"
+    },
+    {
+      "page": "guide.html",
+      "images": [
+        "online"
+      ],
+      "social_image": "online"
+    },
+    {
+      "page": "contact.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "who-needs-a-director-personal-code.html",
+      "images": [
+        "governance"
+      ],
+      "social_image": "governance"
+    },
+    {
+      "page": "privacy.html",
+      "images": [
+        "documents"
+      ],
+      "social_image": "documents"
+    },
+    {
+      "page": "index.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "payment-complete.html",
+      "images": [],
+      "social_image": "hero"
+    },
+    {
+      "page": "apply.html",
+      "images": [],
+      "social_image": "online"
+    },
+    {
+      "page": "about.html",
+      "images": [
+        "compliance"
+      ],
+      "social_image": "compliance"
+    },
+    {
+      "page": "terms.html",
+      "images": [
+        "compliance"
+      ],
+      "social_image": "compliance"
+    },
+    {
+      "page": "acsp-service.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "for/spain-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/pakistan-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/philippines-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/india-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/germany-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/italy-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/china-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/index.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/turkey-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/uae-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/morocco-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/australia-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/united-states-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/france-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/ireland-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "for/switzerland-directors.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "blog/how-to-verify-id-companies-house-step-by-step.html",
+      "images": [
+        "online"
+      ],
+      "social_image": "online"
+    },
+    {
+      "page": "blog/companies-house-id-verification-faqs.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "blog/acsp-vs-gov-uk-one-login.html",
+      "images": [
+        "online"
+      ],
+      "social_image": "online"
+    },
+    {
+      "page": "blog/companies-house-id-verification-guide-2026.html",
+      "images": [
+        "documents"
+      ],
+      "social_image": "documents"
+    },
+    {
+      "page": "blog/companies-house-id-verification-cost-time-mistakes-faq.html",
+      "images": [
+        "pricing"
+      ],
+      "social_image": "pricing"
+    },
+    {
+      "page": "blog/new-company-incorporation-id-verification.html",
+      "images": [
+        "startup"
+      ],
+      "social_image": "startup"
+    },
+    {
+      "page": "blog/companies-house-non-compliance-penalties.html",
+      "images": [
+        "compliance"
+      ],
+      "social_image": "compliance"
+    },
+    {
+      "page": "blog/gov-uk-one-login-vs-acsp-faq.html",
+      "images": [
+        "online"
+      ],
+      "social_image": "online"
+    },
+    {
+      "page": "blog/index.html",
+      "images": [
+        "compliance",
+        "deadlines",
+        "documents",
+        "governance",
+        "hero",
+        "online",
+        "overseas",
+        "pricing",
+        "startup"
+      ],
+      "social_image": "documents"
+    },
+    {
+      "page": "blog/one-code-multiple-directorships.html",
+      "images": [
+        "governance"
+      ],
+      "social_image": "governance"
+    },
+    {
+      "page": "blog/companies-house-id-verification-penalties-faq.html",
+      "images": [
+        "compliance"
+      ],
+      "social_image": "compliance"
+    },
+    {
+      "page": "blog/companies-house-accepted-id-documents-faq.html",
+      "images": [
+        "documents"
+      ],
+      "social_image": "documents"
+    },
+    {
+      "page": "blog/why-acsp-verification-prices-vary.html",
+      "images": [
+        "pricing"
+      ],
+      "social_image": "pricing"
+    },
+    {
+      "page": "blog/psc-identity-verification-deadlines.html",
+      "images": [
+        "deadlines"
+      ],
+      "social_image": "deadlines"
+    },
+    {
+      "page": "blog/corporate-service-providers-bulk-director-verification.html",
+      "images": [
+        "bulk"
+      ],
+      "social_image": "bulk"
+    },
+    {
+      "page": "blog/companies-house-id-verification-transition-deadline-2026.html",
+      "images": [
+        "deadlines"
+      ],
+      "social_image": "deadlines"
+    },
+    {
+      "page": "blog/director-id-verification-requirement-faq.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "blog/missed-companies-house-id-verification-deadline-faq.html",
+      "images": [
+        "deadlines"
+      ],
+      "social_image": "deadlines"
+    },
+    {
+      "page": "blog/overseas-directors-how-to-get-verified.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "blog/overseas-director-verification-uk.html",
+      "images": [
+        "overseas"
+      ],
+      "social_image": "overseas"
+    },
+    {
+      "page": "locations/birmingham.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/bristol.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/cardiff.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/leeds.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/liverpool.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/index.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/sheffield.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/manchester.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/glasgow.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/leicester.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/london.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/edinburgh.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    },
+    {
+      "page": "locations/nottingham.html",
+      "images": [
+        "hero"
+      ],
+      "social_image": "hero"
+    }
+  ]
+}

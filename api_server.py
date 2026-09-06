@@ -1308,7 +1308,7 @@ def trigger_verification(
 
 
 @app.post("/api/webhooks/trustid/{case_ref}")
-def trustid_result_webhook(case_ref: str, payload: dict, callback_token: Optional[str] = Header(None, alias="X-TrustID-Callback-Token")):
+def trustid_result_webhook(case_ref: str, payload: dict, callback_token: Optional[str] = Header(None, alias="Authorization")):
     expected = trustid_client.callback_token(case_ref)
     if not expected or not callback_token or not hmac.compare_digest(expected, callback_token):
         raise HTTPException(403, "Invalid callback credential")

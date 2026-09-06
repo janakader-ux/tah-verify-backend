@@ -11,8 +11,10 @@ class CallbackTests(unittest.TestCase):
   with patch.object(api.trustid_client,'TRUSTID_API_KEY','synthetic-key'),patch.object(api,'send_notification_email',return_value=True) as mail,TestClient(api.app) as c:
    ref='CALLBACK-TEST';c.post('/api/applications',json={'case_ref':ref,'full_name':'Test','email':'qa@example.invalid','route':'online','residency':'uk','fee_amount':49})
    url='/api/webhooks/trustid/'+ref;body={'Callback':{'WorkflowName':'AutoReferral','WorkflowState':'Stop','Aborted':False,'WorkflowStorage':[{'Key':'ClientApplicationReference','Value':ref}]},'Response':{'ContainerId':'synthetic-container'}}
-   headers={'X-TrustID-Callback-Token':api.trustid_client.callback_token(ref)}
+   headers={'Authorization':api.trustid_client.callback_token(ref)}
    self.assertEqual(c.post(url,json=body).status_code,403)
+   self.assertEqual(c.post(url,json=body,headers={'Authorization':'wrong'}).status_code,403)
+   self.assertEqual(c.post(url,json=body,headers={'Authorization':api.trustid_client.callback_token('OTHER-CASE')}).status_code,403)
    self.assertEqual(c.post(url,json=body,headers=headers).status_code,409)
    api.db.execute("UPDATE applications SET payment_status='paid' WHERE case_ref=?",[ref]);api.db.commit()
    self.assertTrue(c.post(url,json=body,headers=headers).json()['queued'])
@@ -27,6 +29,7 @@ class CallbackTests(unittest.TestCase):
   with patch.object(client,'is_configured',return_value=True),patch.object(client,'TRUSTID_API_KEY','synthetic-key'),patch.object(client,'_login',return_value={'Success':True,'SessionId':'fake'}),patch.object(client.requests,'post',return_value=reply) as post:
    client.create_guest_link('Synthetic','Applicant','qa@example.invalid','CASE-ONE')
    payload=post.call_args.kwargs['json']
+   self.assertEqual(payload['ContainerEventCallbackHeaders'][0]['Header'],'Authorization')
    self.assertTrue(payload['SendEmail']);self.assertTrue(payload['ContainerEventCallbackUrl'].endswith('/CASE-ONE'))
    self.assertEqual(payload['ContainerEventCallbackHeaders'][0]['Value'],client.callback_token('CASE-ONE'))
 if __name__=='__main__':unittest.main()

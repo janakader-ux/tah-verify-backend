@@ -177,7 +177,7 @@ def create_guest_link(first_name: str, last_name: str, email: str, reference: st
                 "ClientApplicationReference": reference,
                 "SendEmail": True,
                 "ContainerEventCallbackUrl": "https://tah-verify-backend.onrender.com/api/webhooks/trustid/" + reference,
-                "ContainerEventCallbackHeaders": [{"Header": "X-TrustID-Callback-Token", "Value": callback_token(reference)}],
+                "ContainerEventCallbackHeaders": [{"Header": "Authorization", "Value": callback_token(reference)}],
             },
             timeout=_REQUEST_TIMEOUT,
         )

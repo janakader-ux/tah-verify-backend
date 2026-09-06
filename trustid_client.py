@@ -53,6 +53,9 @@ TRUSTID_SERVER = os.environ.get("TRUSTID_SERVER", "").rstrip("/")
 TRUSTID_USERNAME = os.environ.get("TRUSTID_USERNAME", "")
 TRUSTID_PASSWORD = os.environ.get("TRUSTID_PASSWORD", "")
 TRUSTID_API_KEY = os.environ.get("TRUSTID_API_KEY", "")
+TRUSTID_CALLBACK_BASE_URL = os.environ.get(
+    "TRUSTID_CALLBACK_BASE_URL", "https://tah-verify-backend.onrender.com"
+).rstrip("/")
 
 # A single stable device identifier for this backend process, per TrustID's
 # requirement that "once a session identifier has been obtained by using a
@@ -176,7 +179,7 @@ def create_guest_link(first_name: str, last_name: str, email: str, reference: st
                 "Name": full_name,
                 "ClientApplicationReference": reference,
                 "SendEmail": True,
-                "ContainerEventCallbackUrl": "https://tah-verify-backend.onrender.com/api/webhooks/trustid/" + reference,
+                "ContainerEventCallbackUrl": TRUSTID_CALLBACK_BASE_URL + "/api/webhooks/trustid/" + reference,
                 "ContainerEventCallbackHeaders": [{"Header": "Authorization", "Value": callback_token(reference)}],
             },
             timeout=_REQUEST_TIMEOUT,

@@ -27,6 +27,7 @@ class ProviderJourneys(unittest.TestCase):
    elif url.endswith('/VPE/guestLink/createGuestLink/'):
     p=kw['json'];guests.append(p)
     self.assertEqual(p['ContainerEventCallbackHeaders'][0]['Header'],'Authorization')
+    self.assertEqual(p['ContainerEventCallbackUrl'],'https://staging.example.invalid/api/webhooks/trustid/'+p['ClientApplicationReference'])
     self.assertTrue(p['SendEmail']);self.assertTrue(p['Email'].endswith('@example.invalid'))
     body={'Success':not controls['reject_guest'],'Message':'Synthetic provider rejection','LinkUrl':'https://example.invalid/guest'}
    elif url=='https://api.brevo.com/v3/smtp/email':
@@ -34,7 +35,7 @@ class ProviderJourneys(unittest.TestCase):
     response.status_code=503 if controls['email_fail'] else 201;body={'messageId':'synthetic-mail'}
    else:raise AssertionError('Unexpected network destination: '+url)
    response._content=json.dumps(body).encode();return response
-  with patch.object(requests.sessions.Session,'request',transport),patch.object(api,'STRIPE_TOKEN','sk_test_synthetic'),patch.object(api,'BREVO_API_KEY','synthetic'),patch.object(api,'NOTIFICATION_EMAIL','staff@example.invalid'),patch.object(api.trustid_client,'TRUSTID_SERVER','https://trustid.example.invalid'),patch.object(api.trustid_client,'is_configured',return_value=True),patch.object(api.trustid_client,'TRUSTID_API_KEY','synthetic'),TestClient(api.app) as c:
+  with patch.object(requests.sessions.Session,'request',transport),patch.object(api,'STRIPE_TOKEN','sk_test_synthetic'),patch.object(api,'BREVO_API_KEY','synthetic'),patch.object(api,'NOTIFICATION_EMAIL','staff@example.invalid'),patch.object(api.trustid_client,'TRUSTID_SERVER','https://trustid.example.invalid'),patch.object(api.trustid_client,'is_configured',return_value=True),patch.object(api.trustid_client,'TRUSTID_API_KEY','synthetic'),patch.object(api.trustid_client,'TRUSTID_CALLBACK_BASE_URL','https://staging.example.invalid'),TestClient(api.app) as c:
    staff={'X-Staff-Passcode':'qa-staff-secret'}
    for n,(res,route,fee) in enumerate([('uk','online',49),('overseas','online',119),('uk','in-person',125),('overseas','in-person',125)]):
     ref='QA-PROVIDER-'+str(n);url='/api/applications/'+ref;before=len(guests)

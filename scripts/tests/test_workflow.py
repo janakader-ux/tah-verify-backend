@@ -22,8 +22,11 @@ class WorkflowTests(unittest.TestCase):
             self.assertEqual(client.post('/api/applications/TEST-ONLINE/submitted',headers=headers).status_code,200)
             url='/api/applications/TEST-ONLINE/payment'
             self.assertEqual(client.post(url).status_code,403)
-            self.assertEqual(client.post(url,headers=headers,json={'origin':'https://directorpersonalcode.uk'}).status_code,200)
-            self.assertEqual(client.post(url,headers=headers).status_code,200)
+            self.assertEqual(client.post(url,headers=headers,json={'origin':'https://directorpersonalcode.uk'}).status_code,409)
+            with patch.object(api.document_review,'payment_allowed',return_value=True):
+                self.assertEqual(client.post(url,headers=headers,json={'origin':'https://directorpersonalcode.uk'}).status_code,200)
+            with patch.object(api.document_review,'payment_allowed',return_value=True):
+                self.assertEqual(client.post(url,headers=headers).status_code,200)
             self.assertEqual(checkout.call_count,1, 'Repeated checkout must reuse pending session')
             self.assertEqual(client.post('/api/applications',json=payload,headers=headers).status_code,409)
             status='/api/applications/TEST-ONLINE/payment-status'

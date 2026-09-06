@@ -841,3 +841,7 @@ h4 {
 /* Large, crisp process illustrations on the detailed service timelines. */
 .timeline-step__icon { width:144px; height:90px; padding:0; border-radius:12px; background:transparent; }
 @media(max-width:600px) { .timeline-step { grid-template-columns:1fr; } .timeline-step__badge { flex-direction:row; justify-content:flex-start; gap:16px; } .timeline-step__icon { width:160px; height:100px; } }
+
+.independent-notice {background:#edf4f5;color:#183b4a;font-size:12px;line-height:1.6;padding:12px 0;border-bottom:1px solid #cfdee2}.independent-notice a{color:#164f62;text-decoration:underline}.document-review-panel{border:1px solid #8eb9ba;border-radius:14px;padding:24px;margin:24px 0}.document-review-panel button{margin:8px 8px 8px 0}.document-review-panel input[type=file]{max-width:100%}.review-document-image{max-width:100%;max-height:600px;object-fit:contain;background:white}
+
+#enquiryForm {display:grid;gap:1.25rem;margin:2rem 0;padding:clamp(1rem,4vw,2rem);border:1px solid #ccd9df;border-radius:16px;background:#f5f9fa;color:#073655} #enquiryForm label {display:grid;gap:.45rem;font-weight:600} #enquiryForm input,#enquiryForm select,#enquiryForm textarea {width:100%;padding:.8rem;border:1px solid #8199a7;border-radius:8px;background:white;color:#073655;font:inherit} #enquiryForm textarea {min-height:120px} #enquiryForm p {margin:0} #enquiryStatus {font-weight:600}

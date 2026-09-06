@@ -26,11 +26,10 @@
 
 <link rel="stylesheet" href="./css/base.css" />
 <link rel="stylesheet" href="./css/tokens.css" />
-<link rel="stylesheet" href="./css/site.css" />
+<link rel="stylesheet" href="./css/site.css?v=20260906-pricing-review" />
 <link rel="stylesheet" href="./css/content.css" />
 
-<script type="application/ld+json">
-{
+<script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
@@ -47,8 +46,7 @@
       "item": "https://directorpersonalcode.uk/privacy.html"
     }
   ]
-}
-</script>
+}</script>
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to content</a>
@@ -92,6 +90,7 @@
     <a href='/bulk-verification.html'>Bulk Verification</a>
   </nav>
 </header>
+<aside class="independent-notice" aria-label="Independent service disclosure"><div class="container">directorpersonalcode.uk is an independent corporate advisory service and is not affiliated with, endorsed by, or an official agency of Companies House or any government body. <a href="https://www.gov.uk/guidance/verifying-your-identity-for-companies-house">You may also be able to verify directly through GOV.UK for free.</a></div></aside>
 
 <main id="main">
 
@@ -150,11 +149,12 @@
           <ul>
             <li><strong>TrustID</strong>, our identity verification sub-processor, for applicants using the digital (IDVT) route — TrustID processes document and biometric data solely to perform the identity check.</li>
             <li><strong>Companies House</strong>, to whom we submit an Identity Verification Statement containing your name, date of birth, home address, email address, and document type/reference/expiry/country of issue only — we do not send Companies House copies of your documents.</li>
-            <li>We do not sell or share your data with any other third party, and do not use it for marketing without your separate consent.</li>
+            <li>We do not sell your data or use it for marketing without separate consent. Our hosting and payment providers process data needed to provide the service; optional AI document review is described below.</li>
           </ul>
         </section>
 
-        <section id="retention" class="legal-section" data-reveal>
+        <section id="preliminary-documents" class="legal-section"><h2>Preliminary document review before payment</h2><p>We collect clear document photographs to assess the proposed document type and readability before you pay. This is separate from identity verification and does not check authenticity, liveness or facial matching. You can request a team review instead of AI assistance.</p><p>If you select AI assistance and it is available, we send the document photographs and your stated name and date of birth to OpenAI through its API for this limited review. OpenAI API data is not used to train models by default; provider security and abuse-monitoring retention may apply. Read <a href="https://developers.openai.com/api/docs/guides/your-data">OpenAI data information</a>. We do not promise zero provider retention.</p><p>Preliminary photographs are encrypted in our protected backend, accessible to authorised staff, and expire after seven days. They are removed from active storage by scheduled cleanup. They are not published, emailed as attachments or included in analytics. Separate identity-verification evidence collected through TrustID or at your appointment remains subject to the statutory record-keeping requirements below. Contact Kader@taxandaccountinghub.com for access, correction or deletion requests.</p></section>
+<section id="retention" class="legal-section" data-reveal>
           <h2>5. Retention</h2>
           <p>We retain all records relating to your engagement, including documents, review checklists, and records of any failed verification attempt, for <strong>7 years</strong> from the date your engagement is completed (or, for a failed attempt, from the date of that attempt), in line with our regulatory obligations. After this period, records are securely destroyed. This period cannot be shortened at your request.</p>
         </section>

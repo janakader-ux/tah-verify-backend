@@ -74,6 +74,7 @@ Note: SumUp has no separate sandbox/test mode for this checkout flow — every
 checkout created here is a REAL, live payment request against the connected
 merchant account.
 """
+import asyncio
 import hashlib
 import hmac
 import json
@@ -94,6 +95,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 import trustid_client
+import document_review
+from fastapi.responses import Response
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger("tah_verify")
 logging.basicConfig(level=logging.INFO)
@@ -213,6 +217,7 @@ for _col, _decl in [
     ("sign_date", "TEXT"),
     ("sign_ip", "TEXT"),
     ("signature_data", "TEXT"),
+    ("document_review_required", "INTEGER DEFAULT 0"),
 ]:
     if _col not in _existing_cols:
         db.execute(f"ALTER TABLE applications ADD COLUMN {_col} {_decl}")
@@ -221,8 +226,17 @@ db.commit()
 
 @asynccontextmanager
 async def lifespan(app):
-    yield
-    db.close()
+    async def cleanup():
+        while True:
+            await asyncio.to_thread(lambda: document_review.connect(DB_PATH).close())
+            await asyncio.sleep(3600)
+    task=asyncio.create_task(cleanup())
+    try: yield
+    finally:
+        task.cancel()
+        try: await task
+        except asyncio.CancelledError: pass
+        db.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -313,7 +327,7 @@ def staff_passcode_supplied(
 # js/apply.js. If you change a price, change it in both places.
 PRICING = {
     "uk": {"online": 49.0, "in-person": 125.0},
-    "overseas": {"online": 175.0, "in-person": 175.0},
+    "overseas": {"online": 119.0, "in-person": 125.0},
 }
 
 VALID_RESIDENCIES = tuple(PRICING.keys())
@@ -636,12 +650,14 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
 def health():
     return {
         "status": "ok",
-        "release": "2026-09-06-recovery",
+        "release": "2026-09-06-document-review",
         "stripe_configured": bool(STRIPE_TOKEN),
         "sumup_configured": bool(SUMUP_BASE_URL and SUMUP_TOKEN and SUMUP_MERCHANT_CODE),
         "active_payment_provider": "stripe" if STRIPE_TOKEN else ("sumup" if (SUMUP_TOKEN and SUMUP_MERCHANT_CODE) else None),
         "trustid_configured": trustid_client.is_configured(),
         "email_notifications_configured": bool(BREVO_API_KEY),
+        "document_upload_configured": document_review.configured(),
+        "ai_document_review_configured": document_review.ai_configured(),
     }
 
 
@@ -700,6 +716,9 @@ def config():
     """Small shared config surface so the frontend and staff dashboard don't
     hardcode office addresses / portal links in two places."""
     return {
+        "pricing": PRICING,
+        "bulk_pricing": {"uk":39,"overseas":85,"minimum":10},
+        "document_review": {"available":document_review.configured(),"ai_available":document_review.ai_configured()},
         "trustid_guest_link_portal_url": trustid_client.TRUSTID_PORTAL_GUEST_LINK_URL,
         "offices": {
             "london": {
@@ -778,6 +797,8 @@ def create_application(app_in: ApplicationIn, token: Optional[str] = Depends(cas
                 secrets.token_urlsafe(24),
             ],
         )
+    if not existing:
+        db.execute("UPDATE applications SET document_review_required=1 WHERE case_ref=?", (app_in.case_ref,))
     db.commit()
     return get_application(app_in.case_ref)
 
@@ -973,11 +994,13 @@ def create_payment(
 
     if record.get("payment_status") == "paid":
         raise HTTPException(409, "This application has already been paid.")
+    if record.get("document_review_required") and not document_review.payment_allowed(DB_PATH, record):
+        raise HTTPException(409, "Complete the preliminary document review before payment.")
     if record.get("payment_checkout_id") and record.get("payment_url") and record.get("payment_status") == "pending":
         return {"checkout_id": record["payment_checkout_id"], "hosted_checkout_url": record["payment_url"], "provider": record.get("payment_provider")}
 
     body = request_body or {}
-    origin = body.get("origin", "").rstrip("/")
+    origin = "https://directorpersonalcode.uk"
     redirect_url = f"{origin}/payment-complete.html" if origin else None
 
     if STRIPE_TOKEN:
@@ -1253,7 +1276,8 @@ def list_applications(passcode: Optional[str] = Depends(staff_passcode_supplied)
     require_staff_passcode(passcode)
     cur = db.execute("SELECT * FROM applications ORDER BY id DESC")
     columns = [d[0] for d in cur.description]
-    return [row_to_dict(r, columns) for r in cur.fetchall()]
+    rows=[row_to_dict(r, columns) for r in cur.fetchall()]
+    return [{**r, 'document_review_status':document_review.read(DB_PATH,r)['status']} for r in rows]
 
 
 @app.post("/api/diagnostics/reconcile-payments")
@@ -1303,9 +1327,112 @@ def delete_application(
     record = get_application(case_ref)
     if not record:
         raise HTTPException(404, "Application not found")
+    with document_review.connect(DB_PATH) as con:
+        con.execute("DELETE FROM document_reviews WHERE case_ref = ?", [case_ref])
+        con.execute("DELETE FROM review_events WHERE case_ref = ?", [case_ref])
     db.execute("DELETE FROM applications WHERE case_ref = ?", [case_ref])
     db.commit()
     return {"deleted": True, "case_ref": case_ref}
+
+
+
+
+
+@app.get('/api/applications/{case_ref}/document-review')
+def document_review_status(case_ref: str, token: Optional[str] = Depends(case_token_supplied)):
+    record=get_application(case_ref)
+    if not record: raise HTTPException(404,'Application not found')
+    require_case_token(record,token)
+    return {**document_review.read(DB_PATH,record),'fee_amount':charge_amount_for(record),
+            'route':record['route'],'residency':record['residency']}
+
+@app.post('/api/applications/{case_ref}/documents')
+async def upload_documents(case_ref: str, request: Request, token: Optional[str] = Depends(case_token_supplied)):
+    record=get_application(case_ref)
+    if not record: raise HTTPException(404,'Application not found')
+    require_case_token(record,token)
+    if record.get('payment_checkout_id') or record.get('payment_status')=='paid':
+        raise HTTPException(409,'Checkout has started. Contact our team to change documents.')
+    if not document_review.configured(): raise HTTPException(503,'Secure document review is unavailable. Contact our team; do not email identity documents.')
+    document_review.rate_limit(DB_PATH,'case:'+case_ref)
+    # Use the actual connection address; never trust caller-controlled forwarding headers.
+    address=request.client.host if request.client else 'unknown'
+    document_review.rate_limit(DB_PATH,'ip:'+hashlib.sha256(address.encode()).hexdigest(),20)
+    document_review.rate_limit(DB_PATH,'uploads-global',30,86400)
+    raw=bytearray()
+    async for chunk in request.stream():
+        raw.extend(chunk)
+        if len(raw)>document_review.MAX_BODY: raise HTTPException(413,'Upload is too large.')
+    try: payload=json.loads(raw)
+    except Exception: raise HTTPException(400,'Invalid upload data.')
+    if not isinstance(payload,dict): raise HTTPException(400,'Invalid upload data.')
+    result=await run_in_threadpool(document_review.save,DB_PATH,record,payload.get('files'),payload.get('consent'),payload.get('use_ai',False))
+    if result['status']=='manual':
+        await run_in_threadpool(send_notification_email,'Pre-payment document review needed: '+case_ref,
+            {'Case reference':case_ref,'Status':'Review required before payment','Staff portal':'https://directorpersonalcode.uk/staff'},
+            'Open the protected staff portal to review the uploaded documents. No documents are attached to this email.')
+    return result
+
+@app.get('/api/staff/applications/{case_ref}/documents')
+def staff_document_list(case_ref: str, passcode: Optional[str] = Depends(staff_passcode_supplied)):
+    require_staff_passcode(passcode)
+    record=get_application(case_ref)
+    if not record:raise HTTPException(404,'Application not found')
+    result=document_review.read(DB_PATH,record)
+    images=document_review.staff_images(DB_PATH,record)
+    return {**result,'images':['data:image/jpeg;base64,'+i for i in images]}
+
+@app.post('/api/staff/applications/{case_ref}/document-review')
+def staff_document_decision(case_ref: str, body:dict, passcode: Optional[str] = Depends(staff_passcode_supplied)):
+    require_staff_passcode(passcode)
+    record=get_application(case_ref)
+    if not record:raise HTTPException(404,'Application not found')
+    if record.get('payment_checkout_id'):raise HTTPException(409,'Checkout has already started. Contact the applicant directly.')
+    if not isinstance(body.get('approved'),bool):raise HTTPException(400,'Choose an explicit review outcome.')
+    return document_review.decide(DB_PATH,record,body.get('version'),body['approved'],body.get('note'))
+
+@app.middleware('http')
+async def private_api_responses(request:Request,call_next):
+    response=await call_next(request)
+    if request.url.path.startswith('/api/'):
+        response.headers['Cache-Control']='no-store, private'
+        response.headers['X-Content-Type-Options']='nosniff'
+    return response
+
+class EnquiryIn(BaseModel):
+    name: str
+    email: str
+    service: str
+    uk_count: int = 0
+    overseas_count: int = 0
+    location: str = ''
+    notes: str = ''
+
+@app.post('/api/enquiries',status_code=201)
+def create_enquiry(body:EnquiryIn,request:Request):
+    import re
+    if body.service not in ('bulk','visit','complex'):raise HTTPException(400,'Choose a service.')
+    if not 1<=len(body.name.strip())<=150 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',body.email) or len(body.email)>254:
+        raise HTTPException(400,'Enter your name and a valid email address.')
+    if not 0<=body.uk_count<=10000 or not 0<=body.overseas_count<=10000 or len(body.notes)>2000 or len(body.location)>300:
+        raise HTTPException(400,'Check the application counts and message length.')
+    if body.service=='bulk' and body.uk_count+body.overseas_count<10:raise HTTPException(400,'Bulk pricing requires at least 10 applicants in total; mixed groups qualify.')
+    address=request.client.host if request.client else 'unknown'
+    document_review.rate_limit(DB_PATH,'enquiry:'+hashlib.sha256(address.encode()).hexdigest(),5)
+    reference='ENQ-'+uuid.uuid4().hex[:12].upper()
+    indicative=(39*body.uk_count+85*body.overseas_count) if body.service=='bulk' else None
+    with document_review.connect(DB_PATH) as con:
+        con.execute('CREATE TABLE IF NOT EXISTS service_enquiries (reference TEXT PRIMARY KEY,payload TEXT,indicative_total REAL,created REAL)')
+        con.execute('INSERT INTO service_enquiries VALUES (?,?,?,?)',(reference,body.model_dump_json(),indicative,time.time()))
+    sent=send_notification_email('Service enquiry: '+reference,{'Reference':reference,**body.model_dump(),'Indicative standard bulk total':indicative or 'Quote required'},'Please confirm scope, pricing and appointment availability. No payment has been taken.')
+    return {'reference':reference,'indicative_total':indicative,'message':'Enquiry saved. We will confirm scope and pricing before booking. No payment has been taken.','notification_sent':sent}
+
+@app.get('/api/staff/enquiries')
+def list_enquiries(passcode:Optional[str]=Depends(staff_passcode_supplied)):
+    require_staff_passcode(passcode)
+    with document_review.connect(DB_PATH) as con:
+        con.execute('CREATE TABLE IF NOT EXISTS service_enquiries (reference TEXT PRIMARY KEY,payload TEXT,indicative_total REAL,created REAL)')
+        return [{'reference':r['reference'],**json.loads(r['payload']),'indicative_total':r['indicative_total']} for r in con.execute('SELECT * FROM service_enquiries ORDER BY created DESC LIMIT 200')]
 
 
 if __name__ == "__main__":

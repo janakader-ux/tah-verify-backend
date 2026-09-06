@@ -10,7 +10,7 @@
 <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700&f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="./css/base.css" />
 <link rel="stylesheet" href="./css/tokens.css" />
-<link rel="stylesheet" href="./css/site.css" />
+<link rel="stylesheet" href="./css/site.css?v=20260906-pricing-review" />
 <link rel="stylesheet" href="./css/apply.css" />
 <style>
   .staff-wrap { max-width: 1100px; margin: 0 auto; padding: var(--space-8) var(--space-5); }
@@ -55,6 +55,7 @@
 <meta property="og:image" content="https://directorpersonalcode.uk/images/editorial/hero-1600.webp" />
 </head>
 <body data-theme="dark">
+<aside class="independent-notice" aria-label="Independent service disclosure"><div class="container">directorpersonalcode.uk is an independent corporate advisory service and is not affiliated with, endorsed by, or an official agency of Companies House or any government body. <a href="https://www.gov.uk/guidance/verifying-your-identity-for-companies-house">You may also be able to verify directly through GOV.UK for free.</a></div></aside>
   <div class="staff-wrap">
     <div id="loginBox" class="staff-login">
       <h1 style="font-family:var(--font-display); margin-bottom: var(--space-2);">Director Personal Code — staff sign-in</h1>
@@ -190,7 +191,8 @@
   // single delegated click handler below reads that attribute.
   function actionsCell(r) {
     const deleteBtn = '<button type="button" class="action-btn delete-btn" data-case-ref="' + escHtml(r.case_ref) + '" style="border-color: oklch(0.6 0.2 25); color: oklch(0.7 0.2 25);">Delete</button>';
-    const viewBtn = '<button type="button" class="action-btn view-btn" data-case-ref="' + escHtml(r.case_ref) + '">View</button>';
+    const reviewBtn = '<button type="button" class="action-btn document-review-btn" data-case-ref="' + escHtml(r.case_ref) + '">Documents</button>';
+    const viewBtn = reviewBtn + '<button type="button" class="action-btn view-btn" data-case-ref="' + escHtml(r.case_ref) + '">View</button>';
     if (r.route === 'online') {
       const detail = 'First: ' + (r.first_name || '') + ' | Last: ' + (r.last_name || '') + ' | Email: ' + (r.email || '') + ' | Reference: ' + r.case_ref;
       return viewBtn + '<button type="button" class="action-btn copy-details-btn" data-copy="' + escHtml(detail) + '">Copy details</button>' +
@@ -217,18 +219,20 @@
       ['Email', r.email], ['Mobile', r.mobile], ['Company name', r.company_name],
       ['Company number', r.company_number], ['Role (confirmed)', r.role_confirm],
       ['Fee', r.fee_amount ? ('£' + r.fee_amount) : ''], ['Verification route', r.route],
-      ['Payment status', r.payment_status], ['Verification status', r.verification_status],
+      ['Preliminary document review', r.document_review_status || (r.document_review_required ? 'Upload / review required' : 'Legacy application')], ['Payment status', r.payment_status], ['Verification status', r.verification_status],
       ['Verification notes', r.verification_notes || ''],
       ['Engagement letter signed by', r.sign_name], ['Signed on', r.sign_date],
       ['Signing IP', r.sign_ip || 'Not available'], ['Created', r.created_at],
     ];
     let html = rows.map(([k, v]) => '<div style="display:flex; gap:12px; padding:6px 0; border-bottom:1px solid oklch(1 0 0 / 0.06);"><div style="flex:0 0 190px; color:oklch(0.6 0.01 255);">' + escHtml(k) + '</div><div style="flex:1;">' + escHtml(v || '—') + '</div></div>').join('');
-    if (r.signature_data) {
+    if (typeof r.signature_data === 'string' && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(r.signature_data)) {
       html += '<div style="margin-top:12px;"><div style="color:oklch(0.6 0.01 255); margin-bottom:6px;">Signature</div><img src="' + r.signature_data + '" alt="Applicant signature" style="max-width:100%; background:white; border-radius:6px;" /></div>';
     }
     return html;
   }
 
+  const enquiriesButton=document.createElement('button');enquiriesButton.textContent='View bulk / visit enquiries';enquiriesButton.className='action-btn';document.getElementById('detailOverlay').before(enquiriesButton);
+  enquiriesButton.addEventListener('click',async()=>{const area=document.getElementById('detailBody');document.getElementById('detailOverlay').hidden=false;document.getElementById('detailTitle').textContent='Service enquiries';area.textContent='Loading…';try{const r=await authedFetch('/api/staff/enquiries');if(!r.ok)throw new Error('Sign in before viewing enquiries.');const rows=await r.json();area.textContent=rows.length?rows.map(x=>Object.entries(x).map(([k,v])=>k+': '+v).join('\n')).join('\n\n'):'No enquiries yet.';area.style.whiteSpace='pre-wrap';}catch(e){area.textContent=e.message;}});
   // Every applicant-controlled field (case_ref, name, email, created_at is
   // server-generated so lower risk but escaped anyway) is HTML-escaped before
   // being placed in the table. This closes the stored-XSS path where a
@@ -272,8 +276,37 @@
         const r = rows.find((x) => x.case_ref === btn.dataset.caseRef);
         if (!r) return;
         document.getElementById('detailTitle').textContent = 'Application ' + r.case_ref;
+        document.getElementById('detailBody').style.whiteSpace='normal';
         document.getElementById('detailBody').innerHTML = detailRows(r);
         document.getElementById('detailOverlay').hidden = false;
+      });
+    });
+
+    document.querySelectorAll('.document-review-btn').forEach(btn=>{
+      btn.addEventListener('click',async()=>{
+        const caseRef=btn.dataset.caseRef;
+        const area=document.getElementById('detailBody');
+        document.getElementById('detailOverlay').hidden=false;
+        document.getElementById('detailTitle').textContent='Preliminary documents: '+caseRef;
+        area.textContent='Loading protected documents…';
+        try {
+          const response=await authedFetch('/api/staff/applications/'+encodeURIComponent(caseRef)+'/documents');
+          const data=await response.json();if(!response.ok)throw new Error(data.detail||'Unable to load documents');
+          area.textContent='Status: '+data.status+'. This review only decides readiness for payment. Complete all required identity checks separately. Verify two qualifying documents for an office appointment and at least one government-issued document for an overseas resident.';
+          for(const src of data.images){const im=document.createElement('img');im.src=src;im.alt='Protected preliminary document';im.className='review-document-image';area.appendChild(im);}
+          const note=document.createElement('textarea');note.placeholder='Record your review reason (required, minimum 10 characters)';note.setAttribute('aria-label','Review reason');area.appendChild(note);
+          for(const [label,approved] of [['Suitable to proceed to payment',true],['Request clearer or alternative documents',false]]){
+            const button=document.createElement('button');button.textContent=label;button.className='action-btn';area.appendChild(button);
+            button.addEventListener('click',async()=>{
+              button.disabled=true;
+              try {
+                const res=await authedFetch('/api/staff/applications/'+encodeURIComponent(caseRef)+'/document-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:data.version,approved,note:note.value})});
+                const result=await res.json();if(!res.ok)throw new Error(result.detail||'Review could not be saved');
+                area.textContent=result.message;render(await loadApplications());
+              }catch(e){alert(e.message);button.disabled=false;}
+            });
+          }
+        }catch(e){area.textContent=e.message;}
       });
     });
 

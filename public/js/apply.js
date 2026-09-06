@@ -32,7 +32,7 @@
      Restructured 2 September 2026: UK remote tier introduced at £49 to be
      competitive with the free GOV.UK One Login route and low-cost ACSPs;
      £125 retained for the in-person appointment, which is genuinely scarce;
-     overseas supported-service fee held at £175. ------------------- */
+     approved remote and office prices. ------------------- */
 
   const PRICING = {
     uk: {
@@ -40,8 +40,8 @@
       'in-person': { fee: 125, label: 'UK-based director — in-person appointment' }
     },
     overseas: {
-      online:      { fee: 175, label: 'Overseas director — remote check' },
-      'in-person': { fee: 175, label: 'Overseas director — in-person appointment' }
+      online:      { fee: 119, label: 'Overseas director — remote check' },
+      'in-person': { fee: 125, label: 'Overseas director — in-person appointment' }
     }
   };
 
@@ -90,7 +90,7 @@
       li.classList.toggle('is-complete', num < n);
     });
     progressFill.style.width = ((n) / TOTAL_STEPS * 100).toFixed(2) + '%';
-    backBtn.hidden = n === 1;
+    backBtn.hidden = n === 1 || state.resuming || state.submitted;
     const isLast = n === TOTAL_STEPS;
     const isSubmitStep = n === 6;
     const isInPersonNextSteps = n === 8 && state.route === 'in-person';
@@ -114,6 +114,7 @@
 
   function goNext() {
     if (state.step === 5 && !state.signed) return; // must sign before leaving the letter step
+    if (state.step === 7 && state.paymentStatus !== 'paid') return;
     if (state.step === 6) return; // step 6 uses the Submit button, not Next
     if (state.step === 8 && state.route === 'in-person') return; // uses Request appointment button
     if (state.step < TOTAL_STEPS) showStep(state.step + 1);
@@ -137,7 +138,7 @@
     if (step === 1) return true;
     if (step === 5) return state.signed;
     if (step === 6) return true;
-    if (step === 7) return state.paymentStatus === 'paid' || document.getElementById('willPay').checked;
+    if (step === 7) return state.paymentStatus === 'paid';
     if (step === 8) return state.route === 'online' ? true : state.appointmentSubmitted;
     if (step === 9) return true;
 
@@ -431,6 +432,7 @@
 
   function buildReview() {
     generateCaseRef();
+    if (state.resuming) { reviewSummary.textContent = 'Your previously saved application and signed engagement are on file. Check the document-review status below to continue.'; caseRefDisplay.textContent = state.caseRef; return; }
     caseRefDisplay.textContent = state.caseRef;
     payReference.textContent = 'TAHV-' + state.caseRef;
     payReference.dataset.copyValue = 'TAHV-' + state.caseRef;
@@ -548,25 +550,16 @@
 
   submitBtn.addEventListener('click', async () => {
     if (state.submitted) return;
+    if (!state.reviewReady) { submitStatus.textContent = 'Complete the preliminary document review first.'; return; }
     generateCaseRef();
     submitBtn.disabled = true;
     submitStatus.textContent = 'Submitting your application securely…';
     submitStatus.classList.remove('is-error');
 
     try {
-      const createRes = await caseFetch('/api/applications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(applicationPayload()),
-      });
-      if (!createRes.ok) throw new Error("Application could not be saved");
-      const createData = await createRes.json();
-      if (!createData.access_token) throw new Error("Missing application access token");
-      // The backend hands back a one-time access token for this case at
-      // creation — required on every later call for this case_ref so that
-      // guessing/enumerating case references alone can't read or modify
-      // someone else's application.
-      state.accessToken = createData.access_token;
+      await saveReviewDraft();
+      await refreshDocumentReview();
+      if (!state.reviewReady) throw new Error('Document review is not complete');
       // The backend marks the application submitted AND sends the staff
       // notification email itself (server-side, via Brevo) — that's the
       // reliable notification channel; there is no separate third-party form
@@ -626,7 +619,7 @@
       showPayLink();
       startPaymentPolling();
     } catch (err) {
-      setPayStatus('Online card payment is temporarily unavailable, please use the bank transfer details below instead.', true);
+      setPayStatus('Payment is unavailable or your document review needs attention. Go back to the document review or contact our team; please do not make an alternative payment yet.', true);
     }
   }
 
@@ -853,10 +846,10 @@
 
     const bodySections = [
       ['1. Purpose and scope of this engagement', 'You have asked Tax And Accounting Hub Ltd to act as your Authorised Corporate Service Provider (ACSP) to verify your identity with Companies House under the Economic Crime and Corporate Transparency Act 2023 and the Registrar\u2019s (Identity Verification by ACSPs) Rules. Tax And Accounting Hub Ltd will collect your data, facilitate your chosen verification route, submit an Identity Verification Statement to Companies House, confirm the outcome in writing, and retain records as required by law.'],
-      ['2. Fee', 'Our fee for this service is ' + feeText + '. Payment is due after you submit this application and before we open your identity verification link or confirm an appointment, and is collected securely online.'],
-      ['3. How your identity will be verified', 'You do not need to upload any documents through this application. Instead, ' + routeText + '. If you are not resident in the United Kingdom, your identity document must be government-issued. All documents must be seen in their original form.'],
+      ['2. Fee', 'Our fee for this service is ' + feeText + '. Payment is due after the preliminary document review and submission of this application and before we open your identity verification link or confirm an appointment, and is collected securely online.'],
+      ['3. How your identity will be verified', 'Upload photographs for a preliminary suitability review before payment. This is not identity verification. For the final identity check, ' + routeText + '. If you are not resident in the United Kingdom, your identity document must be government-issued. All documents must be seen in their original form.'],
       ['4. Your responsibilities', 'You confirm all information provided is true, accurate and complete; you will complete the identity check personally within 14 days of receiving your verification link (online route); you will provide an email address only you can access; and you will notify Tax And Accounting Hub Ltd of any relevant change in circumstances.'],
-      ['5. Data protection', 'Tax And Accounting Hub Ltd is the data controller. The lawful basis is performance of a legal obligation under UK corporate transparency and AML law; biometric data is processed under the substantial public interest condition of the Data Protection Act 2018. TrustID is used as sub-processor for digital checks. Companies House receives only name, DOB, address, email and document reference details — not document copies.'],
+      ['5. Data protection', 'Tax And Accounting Hub Ltd is the data controller. The lawful basis is performance of a legal obligation under UK corporate transparency and AML law; biometric data is processed under the substantial public interest condition of the Data Protection Act 2018. TrustID is used as sub-processor for digital checks. Preliminary document photos are encrypted and expire from active storage after seven days. Optional AI assistance sends photos, name and DOB to OpenAI only when selected; team review is available. See our website privacy notice for provider processing and retention. Companies House receives only name, DOB, address, email and document reference details — not document copies.'],
       ['6. Record retention', 'Records relating to this engagement, including failed attempts, are retained for 7 years from completion, then securely destroyed.'],
       ['7. Liability, confidentiality and termination', 'Liability is capped at the fee you paid (£' + FEE_FROM + ' to £' + FEE_TO + ', as applicable to your case), except where it cannot lawfully be limited. Information is kept confidential save where disclosure is legally required (e.g. AML reporting, which cannot be notified to you). Either party may terminate by written notice; fees for completed work remain payable. Governed by the law of England and Wales.'],
       ['8. What this engagement does not cover', 'Incorporating a company, appointing directors, other Companies House filings, connecting your personal code to your Companies House record, verifying any other individual, Register of Overseas Entities verification, or tax/legal/immigration advice.'],
@@ -890,6 +883,78 @@
 
   document.querySelector('[data-action="download-pdf"]').addEventListener('click', generateLetterPdf);
 
+
+  state.reviewReady = false;
+  state.draftSaved = false;
+  const reviewStatus = document.getElementById('documentReviewStatus');
+  const uploadReviewBtn = document.getElementById('uploadReviewBtn');
+  const reviewFiles = document.getElementById('precheckFiles');
+  reviewFiles.addEventListener('change',()=>{state.reviewReady=false;submitBtn.disabled=true;});
+  async function saveReviewDraft() {
+    if (state.draftSaved || state.resuming) return;
+    generateCaseRef();
+    const response = await caseFetch('/api/applications', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(applicationPayload())});
+    if (!response.ok) throw new Error('Your application could not be saved. Please check your details and try again.');
+    const data=await response.json();
+    if (!data.access_token) throw new Error('Secure application access could not be established.');
+    state.accessToken=data.access_token; state.draftSaved=true;
+  }
+  async function refreshDocumentReview() {
+    if (!state.accessToken) throw new Error('Upload your documents first.');
+    const response=await caseFetch('/api/applications/'+encodeURIComponent(caseRefSlug())+'/document-review');
+    if (!response.ok) throw new Error('Unable to check the review. Please try again.');
+    const data=await response.json();
+    state.reviewReady=data.status==='ready';
+    reviewStatus.textContent=data.message;
+    submitBtn.disabled=!state.reviewReady;
+    if (state.resuming) {
+      state.route=data.route;state.fee=data.fee_amount;state.feeLabel='Previously saved application';
+      payTotal.textContent='£'+data.fee_amount;priceChipAmount.textContent='£'+data.fee_amount;
+    }
+    return data;
+  }
+  function fileBase64(file) { return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(new Error('Unable to read photograph.'));reader.readAsDataURL(file);}); }
+  uploadReviewBtn.addEventListener('click',async()=>{
+    uploadReviewBtn.disabled=true;submitBtn.disabled=true;state.reviewReady=false;
+    try {
+      const files=Array.from(reviewFiles.files||[]);
+      if (!document.getElementById('documentConsent').checked) throw new Error('Please confirm the document-review privacy notice.');
+      if (!files.length || files.length>3 || files.some(f=>!['image/jpeg','image/png'].includes(f.type)||f.size>2000000)) throw new Error('Choose one to three JPEG or PNG photographs, no larger than 2 MB each.');
+      reviewStatus.textContent='Uploading securely for preliminary review. No payment is being taken…';
+      await saveReviewDraft();
+      const body={consent:true,use_ai:document.getElementById('useAiReview').checked,files:await Promise.all(files.map(async f=>({data:await fileBase64(f)})))};
+      const response=await caseFetch('/api/applications/'+encodeURIComponent(caseRefSlug())+'/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await response.json();
+      if (!response.ok) throw new Error(typeof data.detail==='string'?data.detail:'Document upload failed. Please try again.');
+      reviewFiles.value='';await refreshDocumentReview();
+    } catch(error) { reviewStatus.textContent=error.message; }
+    finally { uploadReviewBtn.disabled=false; }
+  });
+  document.getElementById('checkReviewBtn').addEventListener('click',()=>refreshDocumentReview().catch(e=>{reviewStatus.textContent=e.message;}));
+  document.getElementById('saveReviewLinkBtn').addEventListener('click',async()=>{
+    if (!state.accessToken) {reviewStatus.textContent='Upload your documents first, then save your private return link.';return;}
+    const url=location.origin+'/apply#resume='+encodeURIComponent(caseRefSlug())+'~'+encodeURIComponent(state.accessToken);
+    try {await navigator.clipboard.writeText(url);reviewStatus.textContent='Private return link copied. Keep it safe and do not share it; it gives access to this application.';}
+    catch {reviewStatus.textContent='Copying is unavailable. Keep this tab open to return to your review.';}
+  });
+  form.addEventListener('input',event=>{
+    if (event.target.closest('.document-review-panel') || state.resuming || state.submitted) return;
+    state.reviewReady=false;state.draftSaved=false;submitBtn.disabled=true;
+  });
+  fetch(API+'/api/config').then(r=>r.json()).then(data=>{
+    const capability=data.document_review||{};
+    document.getElementById('useAiReview').disabled=!capability.ai_available;
+    document.getElementById('documentReviewMode').textContent=capability.ai_available?'Choose AI-assisted or team review. Unclear results always go to our team.':'A member of our team will complete your preliminary review before payment. Use the private return link to check the outcome.';
+  }).catch(()=>{document.getElementById('useAiReview').disabled=true;document.getElementById('documentReviewMode').textContent='We will confirm review availability when you upload.';});
+
   /* ---------------- Init ---------------- */
   showStep(1);
+  if (location.hash.startsWith('#resume=')) {
+    const parts=location.hash.slice(8).split('~');
+    history.replaceState(null,'',location.pathname);
+    if(parts.length===2) {
+      state.caseRef=decodeURIComponent(parts[0]);state.accessToken=decodeURIComponent(parts[1]);state.resuming=true;state.draftSaved=true;state.signed=true;
+      showStep(6);refreshDocumentReview().catch(e=>{reviewStatus.textContent=e.message;});
+    }
+  }
 })();

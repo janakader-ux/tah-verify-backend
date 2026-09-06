@@ -636,6 +636,7 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
 def health():
     return {
         "status": "ok",
+        "release": "2026-09-06-recovery",
         "stripe_configured": bool(STRIPE_TOKEN),
         "sumup_configured": bool(SUMUP_BASE_URL and SUMUP_TOKEN and SUMUP_MERCHANT_CODE),
         "active_payment_provider": "stripe" if STRIPE_TOKEN else ("sumup" if (SUMUP_TOKEN and SUMUP_MERCHANT_CODE) else None),

@@ -32,7 +32,7 @@
      Restructured 2 September 2026: UK remote tier introduced at £49 to be
      competitive with the free GOV.UK One Login route and low-cost ACSPs;
      £125 retained for the in-person appointment, which is genuinely scarce;
-     overseas held at £175, where no free route exists. ------------------- */
+     overseas supported-service fee held at £175. ------------------- */
 
   const PRICING = {
     uk: {

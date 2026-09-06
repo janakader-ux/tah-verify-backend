@@ -76,7 +76,7 @@ check("overseas, no route -> 175", r.json().get("fee_amount"), 175.0)
 
 print("\n--- update path (re-POST same case_ref) cannot downgrade ---")
 r = post("ATK1", "overseas", "online", 49.0)
-check("re-POST tamper -> still 175", r.json().get("fee_amount"), 175.0)
+check("unauthorised re-POST rejected", r.status_code, 403)
 
 print("\n--- charge-time guard on a poisoned legacy DB row ---")
 A.db.execute("UPDATE applications SET fee_amount=1.0 WHERE case_ref='ATK1'"); A.db.commit()

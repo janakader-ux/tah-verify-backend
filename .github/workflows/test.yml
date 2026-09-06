@@ -21,9 +21,13 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi httpx uvicorn
-          find . -name "requirements.txt" -exec pip install -r {} + || true
+          pip install -r requirements.txt httpx
 
       - name: Run Local E2E Test Suite
         run: |
           python scripts/tests/test_e2e_local.py
+          python test_pricing.py
+          python scripts/tests/test_workflow.py
+          python scripts/tests/test_static.py
+          node --check public/js/apply.js
+          node --test scripts/tests/test_frontend.cjs

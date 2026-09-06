@@ -1,0 +1,195 @@
+/* tokens.css — Director Personal Code design system
+   Concept: "Clean / modern / tech" — Apple-standard restraint.
+   Display: Cabinet Grotesk. Body: Satoshi. Both via Fontshare.
+   Palette: warm off-white / near-black navy surfaces, burgundy primary,
+   deep navy secondary, gold micro-accent for verified/official marks. */
+
+:root {
+  /* ---------- Type scale (fluid clamp, 12px floor) ---------- */
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+  --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
+  --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
+  --text-3xl: clamp(2.5rem, 1rem + 4vw, 5rem);
+  --text-hero: clamp(2.75rem, 1rem + 6vw, 6.5rem);
+
+  /* ---------- 4px spacing system ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* ---------- Motion ---------- */
+  --transition-interactive: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---------- Content widths ---------- */
+  --content-narrow: 640px;
+  --content-article: 780px;
+  --content-default: 960px;
+  --content-wide: 1200px;
+  --content-full: 100%;
+
+  /* ---------- Fonts ---------- */
+  --font-display: 'Cabinet Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Satoshi', 'Helvetica Neue', sans-serif;
+}
+
+/* =========================================================
+   LIGHT MODE (default)
+   ========================================================= */
+:root,
+[data-theme='light'] {
+  /* Surfaces — warm off-white */
+  --color-bg: oklch(0.975 0.006 90);           /* #F8F7F2 */
+  --color-surface: oklch(0.99 0.003 90);
+  --color-surface-2: oklch(0.965 0.007 85);
+  --color-surface-offset: oklch(0.95 0.009 80);
+  --color-surface-offset-2: oklch(0.92 0.011 78);
+  --color-surface-dynamic: oklch(0.9 0.012 78);
+  --color-divider: oklch(0.88 0.012 75 / 0.7);
+  --color-border: oklch(0.2 0.02 30 / 0.12);
+
+  /* Text — near-black ink */
+  --color-text: oklch(0.24 0.014 258);         /* #1B2026 */
+  --color-text-muted: oklch(0.48 0.017 250);   /* #575F67 */
+  --color-text-faint: oklch(0.68 0.012 250);
+  --color-text-inverse: oklch(0.975 0.006 90);
+
+  /* Primary accent — burgundy */
+  --color-primary: oklch(0.36 0.12 8);         /* #6D1731 */
+  --color-primary-hover: oklch(0.3 0.11 8);    /* #570823 */
+  --color-primary-active: oklch(0.24 0.095 8); /* #410116 */
+  --color-primary-highlight: oklch(0.9 0.035 8); /* #F4D5D9 */
+
+  /* Secondary — deep navy (headers, footer, badges) */
+  --color-navy: oklch(0.22 0.045 255);         /* #0B1B2F */
+  --color-navy-2: oklch(0.28 0.045 255);
+
+  /* Gold — verified/official micro-accents only */
+  --color-gold: oklch(0.72 0.11 85);           /* #C49F4D */
+  --color-gold-hover: oklch(0.65 0.11 85);
+  --color-gold-highlight: oklch(0.93 0.04 90);
+
+  /* Success */
+  --color-success: oklch(0.5 0.11 150);
+  --color-success-hover: oklch(0.42 0.11 150);
+  --color-success-highlight: oklch(0.92 0.045 150);
+
+  /* Error / warning (standard tokens, used sparingly) */
+  --color-error: oklch(0.5 0.17 25);
+  --color-error-highlight: oklch(0.93 0.04 25);
+  --color-warning: oklch(0.62 0.13 60);
+  --color-warning-highlight: oklch(0.93 0.05 70);
+
+  /* Shadows — tone-matched to warm surface */
+  --shadow-sm: 0 1px 2px oklch(0.2 0.02 30 / 0.06);
+  --shadow-md: 0 4px 16px oklch(0.2 0.02 30 / 0.08);
+  --shadow-lg: 0 16px 40px oklch(0.2 0.02 30 / 0.14);
+}
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+[data-theme='dark'] {
+  --color-bg: oklch(0.19 0.03 255);            /* #0B1220 near-black navy */
+  --color-surface: oklch(0.23 0.032 255);
+  --color-surface-2: oklch(0.26 0.032 255);
+  --color-surface-offset: oklch(0.28 0.032 255);
+  --color-surface-offset-2: oklch(0.31 0.03 255);
+  --color-surface-dynamic: oklch(0.34 0.028 255);
+  --color-divider: oklch(0.36 0.03 255 / 0.6);
+  --color-border: oklch(0.9 0.01 255 / 0.14);
+
+  --color-text: oklch(0.92 0.006 255);         /* #E2E5E9 */
+  --color-text-muted: oklch(0.7 0.017 255);    /* #989FA9 */
+  --color-text-faint: oklch(0.5 0.02 255);
+  --color-text-inverse: oklch(0.19 0.03 255);
+
+  --color-primary: oklch(0.62 0.135 8);
+  --color-primary-hover: oklch(0.68 0.14 8);
+  --color-primary-active: oklch(0.74 0.14 8);
+  --color-primary-highlight: oklch(0.32 0.05 8);
+
+  --color-navy: oklch(0.14 0.03 255);
+  --color-navy-2: oklch(0.17 0.032 255);
+
+  --color-gold: oklch(0.78 0.11 85);
+  --color-gold-hover: oklch(0.83 0.1 85);
+  --color-gold-highlight: oklch(0.32 0.045 85);
+
+  --color-success: oklch(0.68 0.13 150);
+  --color-success-hover: oklch(0.75 0.13 150);
+  --color-success-highlight: oklch(0.3 0.05 150);
+
+  --color-error: oklch(0.68 0.16 25);
+  --color-error-highlight: oklch(0.32 0.06 25);
+  --color-warning: oklch(0.75 0.12 70);
+  --color-warning-highlight: oklch(0.32 0.05 70);
+
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 16px oklch(0 0 0 / 0.35);
+  --shadow-lg: 0 16px 40px oklch(0 0 0 / 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: oklch(0.19 0.03 255);
+    --color-surface: oklch(0.23 0.032 255);
+    --color-surface-2: oklch(0.26 0.032 255);
+    --color-surface-offset: oklch(0.28 0.032 255);
+    --color-surface-offset-2: oklch(0.31 0.03 255);
+    --color-surface-dynamic: oklch(0.34 0.028 255);
+    --color-divider: oklch(0.36 0.03 255 / 0.6);
+    --color-border: oklch(0.9 0.01 255 / 0.14);
+    --color-text: oklch(0.92 0.006 255);
+    --color-text-muted: oklch(0.7 0.017 255);
+    --color-text-faint: oklch(0.5 0.02 255);
+    --color-text-inverse: oklch(0.19 0.03 255);
+    --color-primary: oklch(0.62 0.135 8);
+    --color-primary-hover: oklch(0.68 0.14 8);
+    --color-primary-active: oklch(0.74 0.14 8);
+    --color-primary-highlight: oklch(0.32 0.05 8);
+    --color-navy: oklch(0.14 0.03 255);
+    --color-navy-2: oklch(0.17 0.032 255);
+    --color-gold: oklch(0.78 0.11 85);
+    --color-gold-hover: oklch(0.83 0.1 85);
+    --color-gold-highlight: oklch(0.32 0.045 85);
+    --color-success: oklch(0.68 0.13 150);
+    --color-success-hover: oklch(0.75 0.13 150);
+    --color-success-highlight: oklch(0.3 0.05 150);
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+    --shadow-md: 0 4px 16px oklch(0 0 0 / 0.35);
+    --shadow-lg: 0 16px 40px oklch(0 0 0 / 0.5);
+  }
+}
+
+/* =========================================================
+   NEON EXCEPTION — reserved for /apply.html ONLY.
+   Do not use these tokens on any other page.
+   ========================================================= */
+:root {
+  --apply-bg: oklch(0.16 0.012 255);            /* #0A0E12 */
+  --apply-neon: oklch(0.93 0.22 128);            /* #BDFF44 */
+  --apply-neon-hover: oklch(0.88 0.23 122);      /* #BFED00 */
+}

@@ -1,5 +1,6 @@
-# Netlify hosts the public HTML. The Python API runs separately on Render.
+# Original static frontend. No bundler or build step.
+# Keep the Render backend and internal documents outside the public directory.
 [build]
   base = "."
-  command = "python3 scripts/build_site.py"
-  publish = "dist"
+  command = ""
+  publish = "public"

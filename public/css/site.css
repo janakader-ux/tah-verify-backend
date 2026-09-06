@@ -837,3 +837,7 @@ h4 {
 /* Responsive editorial photography: fixed proportions, no layout shift. */
 .editorial-image { display:block; max-width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; border-radius:12px; }
 .editorial-support { max-width:720px; margin:24px 0; }
+
+/* Large, crisp process illustrations on the detailed service timelines. */
+.timeline-step__icon { width:144px; height:90px; padding:0; border-radius:12px; background:transparent; }
+@media(max-width:600px) { .timeline-step { grid-template-columns:1fr; } .timeline-step__badge { flex-direction:row; justify-content:flex-start; gap:16px; } .timeline-step__icon { width:160px; height:100px; } }

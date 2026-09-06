@@ -208,16 +208,16 @@
     {
       "page": "blog/acsp-vs-gov-uk-one-login.html",
       "images": [
-        "online"
+        "route-choice"
       ],
-      "social_image": "online"
+      "social_image": "route-choice"
     },
     {
       "page": "blog/companies-house-id-verification-guide-2026.html",
       "images": [
-        "documents"
+        "verification-guide"
       ],
-      "social_image": "documents"
+      "social_image": "verification-guide"
     },
     {
       "page": "blog/companies-house-id-verification-cost-time-mistakes-faq.html",
@@ -243,24 +243,31 @@
     {
       "page": "blog/gov-uk-one-login-vs-acsp-faq.html",
       "images": [
-        "online"
+        "login-security"
       ],
-      "social_image": "online"
+      "social_image": "login-security"
     },
     {
       "page": "blog/index.html",
       "images": [
+        "verification-guide",
+        "price-service",
+        "overseas",
+        "route-choice",
         "compliance",
-        "deadlines",
-        "documents",
+        "deadline-window",
         "governance",
+        "startup",
         "hero",
         "online",
-        "overseas",
+        "documents",
+        "director-requirement",
         "pricing",
-        "startup"
+        "global-passport",
+        "login-security",
+        "bulk"
       ],
-      "social_image": "documents"
+      "social_image": "verification-guide"
     },
     {
       "page": "blog/one-code-multiple-directorships.html",
@@ -272,9 +279,9 @@
     {
       "page": "blog/companies-house-id-verification-penalties-faq.html",
       "images": [
-        "compliance"
+        "penalty-notice"
       ],
-      "social_image": "compliance"
+      "social_image": "penalty-notice"
     },
     {
       "page": "blog/companies-house-accepted-id-documents-faq.html",
@@ -286,16 +293,16 @@
     {
       "page": "blog/why-acsp-verification-prices-vary.html",
       "images": [
-        "pricing"
+        "price-service"
       ],
-      "social_image": "pricing"
+      "social_image": "price-service"
     },
     {
       "page": "blog/psc-identity-verification-deadlines.html",
       "images": [
-        "deadlines"
+        "deadline-window"
       ],
-      "social_image": "deadlines"
+      "social_image": "deadline-window"
     },
     {
       "page": "blog/corporate-service-providers-bulk-director-verification.html",
@@ -307,30 +314,30 @@
     {
       "page": "blog/companies-house-id-verification-transition-deadline-2026.html",
       "images": [
-        "deadlines"
+        "transition-timeline"
       ],
-      "social_image": "deadlines"
+      "social_image": "transition-timeline"
     },
     {
       "page": "blog/director-id-verification-requirement-faq.html",
       "images": [
-        "hero"
+        "director-requirement"
       ],
-      "social_image": "hero"
+      "social_image": "director-requirement"
     },
     {
       "page": "blog/missed-companies-house-id-verification-deadline-faq.html",
       "images": [
-        "deadlines"
+        "deadline-recovery"
       ],
-      "social_image": "deadlines"
+      "social_image": "deadline-recovery"
     },
     {
       "page": "blog/overseas-directors-how-to-get-verified.html",
       "images": [
-        "overseas"
+        "global-passport"
       ],
-      "social_image": "overseas"
+      "social_image": "global-passport"
     },
     {
       "page": "blog/overseas-director-verification-uk.html",
@@ -430,5 +437,6 @@
       ],
       "social_image": "hero"
     }
-  ]
+  ],
+  "process_artwork": "Original native SVG illustrations, decorative alongside explanatory step text."
 }

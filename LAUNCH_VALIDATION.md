@@ -1,18 +1,13 @@
-# Application validation — 6 September 2026
+# Revised application workflow — 6 September 2026
 
-Four application categories passed the real API test matrix with external providers mocked, and browser journeys on the isolated Netlify preview:
+Application → signed engagement → review and submit → secure payment → TrustID guest link (remote) or paid appointment request (office) → staff review → Companies House submission by staff.
 
-| Category | Expected fee | API workflow | Browser completion |
-| --- | ---: | --- | --- |
-| UK remote | £49 | Pass | Pass |
-| Overseas remote | £119 | Pass | Pass |
-| UK office | £125 | Pass | Pass |
-| Overseas office | £125 | Pass | Pass |
+No account registration, preliminary document upload or AI review is required. Existing preliminary-review flags no longer block checkout. Archived document-review records retain their original protections and expiry.
 
-Coverage: application details and engagement signature; preliminary document upload and staff approval before checkout; authoritative fees; pending/expired/paid payment states; no repeated charge creation after payment; staff paid status; remote verification handoff; paid-only office appointment requests; final confirmation. Browser tests also rejected an unpaid/declined checkout and an empty office selection. The mobile 390px application retains visible Next navigation and selection guidance.
+All four real API workflows pass with external providers mocked: UK remote £49, overseas remote £119, UK office £125, overseas office £125. Coverage includes missing submission, unpaid/expired/paid checkout, fixed authoritative fees, no duplicate paid checkout, TrustID only after payment, office appointment gating and staff paid status. Frontend tests cover unsigned/incomplete applications and save/submission failures.
 
-Fixes: fixed bottom navigation above the cookie banner, explicit missing-selection instructions, native required-field validity, retry for failed/expired checkout, server-side paid and route checks before appointment booking, valid future appointment dates, and consistent two-original-document office instructions.
+TrustID result notifications now use documented per-Guest-Link callback URLs and authentication headers. Authenticated AutoReferral/Stop callbacks queue staff review, not identity approval. A durable outbox retries failed notification email and suppresses repeated callbacks. Tests cover authentication, paid-route restriction, duplicate delivery and retry. Existing guest links created before this release do not acquire the new callback automatically; staff must monitor those in TrustID.
 
-Fixtures are generated only for Netlify deploy-preview builds and never included in production. They use synthetic data and simulated payment, identity-provider and email responses. No real customer records, card charges or identity submissions were used. Automated tests run in GitHub Actions.
+Sources: https://developer.trustid.co.uk/documentation/topics/guestLink.html and https://developer.trustid.co.uk/documentation/topics/webhookcallback4.html
 
-Limits: this is not live Stripe/TrustID/email-provider certification. A controlled provider-sandbox or live transaction is still needed before claiming the complete production provider chain is verified. AI preliminary review remains unavailable until its server API credential is configured; staff preliminary review is the supported current route. Preliminary review is not identity verification.
+Production-provider limitations: dummy tests cannot certify real Stripe charges, TrustID account permissions, guest-link email delivery or provider callbacks. A controlled provider transaction is required for that sign-off. No real charges, identity submissions or diagnostic emails were sent during these tests.

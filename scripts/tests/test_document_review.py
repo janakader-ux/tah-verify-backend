@@ -48,6 +48,7 @@ class ReviewTests(unittest.TestCase):
             self.assertEqual(c.post(payment,headers=h).status_code,409,'Changing identity details invalidates review')
             r=c.post(upload,headers=h,json={'files':[photograph()],'consent':True});version=r.json()['version']
             c.post(decision,headers=staff,json={'version':version,'approved':True,'note':'Rechecked with corrected details'})
+            api.db.execute("UPDATE applications SET submitted=1, sign_name='Test Person', sign_date='2026-09-06' WHERE case_ref='REVIEW-1'");api.db.commit()
             self.assertEqual(c.post(payment,headers=h).status_code,200);checkout.assert_called_once()
             self.assertEqual(c.post(upload,headers=h,json={'files':[photograph()],'consent':True}).status_code,409)
             with review.connect(api.DB_PATH) as db:db.execute('UPDATE document_reviews SET expires=?',(time.time()-1,))

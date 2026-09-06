@@ -219,7 +219,7 @@
       ['Email', r.email], ['Mobile', r.mobile], ['Company name', r.company_name],
       ['Company number', r.company_number], ['Role (confirmed)', r.role_confirm],
       ['Fee', r.fee_amount ? ('£' + r.fee_amount) : ''], ['Verification route', r.route],
-      ['Preliminary document review', r.document_review_status || (r.document_review_required ? 'Upload / review required' : 'Legacy application')], ['Payment status', r.payment_status], ['Verification status', r.verification_status],
+      ['Application workflow', 'Signed application → payment → identity check; no preliminary review required'], ['Payment status', r.payment_status], ['Verification status', r.verification_status],
       ['Verification notes', r.verification_notes || ''],
       ['Engagement letter signed by', r.sign_name], ['Signed on', r.sign_date],
       ['Signing IP', r.sign_ip || 'Not available'], ['Created', r.created_at],

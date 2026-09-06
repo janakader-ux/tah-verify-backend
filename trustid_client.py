@@ -43,6 +43,8 @@ digital IDVT) route. Applicants on the "in-person" route are verified
 manually by TAH staff at a booked appointment or scheduled video call and
 never need a TrustID Guest Link.
 """
+import hashlib
+import hmac
 import os
 import uuid
 import requests
@@ -103,6 +105,13 @@ def _login() -> dict:
     )
     resp.raise_for_status()
     return resp.json()
+
+
+def callback_token(reference: str) -> str:
+    """Purpose-separated per-case credential, delivered only in callback headers."""
+    if not TRUSTID_API_KEY:
+        return ''
+    return hmac.new(TRUSTID_API_KEY.encode(), ('dpc-result-callback:' + reference).encode(), hashlib.sha256).hexdigest()
 
 
 def create_guest_link(first_name: str, last_name: str, email: str, reference: str) -> dict:
@@ -167,6 +176,8 @@ def create_guest_link(first_name: str, last_name: str, email: str, reference: st
                 "Name": full_name,
                 "ClientApplicationReference": reference,
                 "SendEmail": True,
+                "ContainerEventCallbackUrl": "https://tah-verify-backend.onrender.com/api/webhooks/trustid/" + reference,
+                "ContainerEventCallbackHeaders": [{"Header": "X-TrustID-Callback-Token", "Value": callback_token(reference)}],
             },
             timeout=_REQUEST_TIMEOUT,
         )

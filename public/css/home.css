@@ -243,3 +243,8 @@
     margin-top: var(--space-2);
   }
 }
+
+/* Contextual process artwork replaces the small icon tiles. */
+.step-block__icon { width:100%; height:auto; aspect-ratio:8/5; background:transparent; border-radius:20px; margin-bottom:24px; }
+.step-block__icon img { display:block; width:100%; height:100%; object-fit:contain; }
+.step-block { min-width:0; }

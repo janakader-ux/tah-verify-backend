@@ -192,10 +192,11 @@
   function actionsCell(r) {
     const deleteBtn = '<button type="button" class="action-btn delete-btn" data-case-ref="' + escHtml(r.case_ref) + '" style="border-color: oklch(0.6 0.2 25); color: oklch(0.7 0.2 25);">Delete</button>';
     const reviewBtn = '<button type="button" class="action-btn document-review-btn" data-case-ref="' + escHtml(r.case_ref) + '">Documents</button>';
-    const viewBtn = reviewBtn + '<button type="button" class="action-btn view-btn" data-case-ref="' + escHtml(r.case_ref) + '">View</button>';
+    const viewBtn = (r.document_review_required ? reviewBtn : '') + '<button type="button" class="action-btn view-btn" data-case-ref="' + escHtml(r.case_ref) + '">View</button>';
     if (r.route === 'online') {
       const detail = 'First: ' + (r.first_name || '') + ' | Last: ' + (r.last_name || '') + ' | Email: ' + (r.email || '') + ' | Reference: ' + r.case_ref;
-      return viewBtn + '<button type="button" class="action-btn copy-details-btn" data-copy="' + escHtml(detail) + '">Copy details</button>' +
+      const retryBtn = r.payment_status === 'paid' && ['error','manual_action_required','not_started',null,''].includes(r.verification_status) ? '<button type="button" class="action-btn retry-trustid-btn" data-case-ref="' + escHtml(r.case_ref) + '">Retry TrustID invitation</button>' : '';
+      return viewBtn + retryBtn + '<button type="button" class="action-btn copy-details-btn" data-copy="' + escHtml(detail) + '">Copy details</button>' +
         '<a class="action-btn" href="' + TRUSTID_GUEST_LINK_URL + '" target="_blank" rel="noopener">Open TrustID</a>' + deleteBtn;
     }
     if (r.route === 'in-person') {
@@ -261,6 +262,20 @@
       '</tr>').join('') +
       '</tbody></table>';
     document.getElementById('tableWrap').innerHTML = html;
+
+    document.querySelectorAll('.retry-trustid-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!window.confirm('Retry the TrustID invitation for case ' + btn.dataset.caseRef + '? No payment will be taken. Do not retry if a manual guest link has already been completed.')) return;
+        btn.disabled = true; btn.textContent = 'Requesting invitation…';
+        try {
+          const response = await authedFetch('/api/applications/' + encodeURIComponent(btn.dataset.caseRef) + '/verification', {method:'POST'});
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.detail || 'Retry failed');
+          alert(result.verification_notes || result.verification_status);
+          render(await loadApplications());
+        } catch (error) { alert(error.message); btn.disabled = false; btn.textContent = 'Retry TrustID invitation'; }
+      });
+    });
 
     document.querySelectorAll('.copy-details-btn').forEach((btn) => {
       btn.addEventListener('click', () => {

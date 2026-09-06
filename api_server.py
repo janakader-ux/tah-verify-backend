@@ -81,6 +81,7 @@ import json
 import logging
 import os
 import secrets
+import threading
 import sqlite3
 import time
 import uuid
@@ -230,6 +231,44 @@ db.execute("""CREATE TABLE IF NOT EXISTS trustid_result_notifications (
 db.commit()
 
 
+db.execute("""CREATE TABLE IF NOT EXISTS notification_outbox (
+    message_key TEXT PRIMARY KEY, recipient TEXT NOT NULL, subject TEXT NOT NULL,
+    body TEXT NOT NULL, kind TEXT NOT NULL, accepted INTEGER DEFAULT 0,
+    attempts INTEGER DEFAULT 0
+)""")
+db.commit()
+_email_lock = threading.RLock()
+_payment_lock = threading.RLock()
+_verification_lock = _payment_lock
+
+
+def deliver_pending_emails():
+    with _email_lock, sqlite3.connect(DB_PATH) as con:
+        pending = con.execute("SELECT message_key,recipient,subject,body,kind FROM notification_outbox WHERE accepted=0 LIMIT 20").fetchall()
+    for key, recipient, subject, body, kind in pending:
+        _deliver_outbox_email(key)
+
+
+def _deliver_outbox_email(key):
+    with _email_lock:
+        with sqlite3.connect(DB_PATH) as con:
+            row = con.execute("SELECT recipient,subject,body,kind,accepted FROM notification_outbox WHERE message_key=?", [key]).fetchone()
+        if not row or row[4]:
+            return bool(row)
+        accepted = _brevo_deliver(*row[:4])
+        with sqlite3.connect(DB_PATH) as con:
+            con.execute("UPDATE notification_outbox SET accepted=?, attempts=attempts+1, body=CASE WHEN ? THEN '' ELSE body END WHERE message_key=?", [int(accepted),int(accepted),key])
+        return accepted
+
+
+def _brevo_send(to_email: str, subject: str, html: str, kind: str = "Notification") -> bool:
+    # Persist before attempting delivery so transient outages survive restarts.
+    key = hashlib.sha256(json.dumps([to_email,subject,html,kind],ensure_ascii=False).encode()).hexdigest()
+    with _email_lock, sqlite3.connect(DB_PATH) as con:
+        con.execute("INSERT OR IGNORE INTO notification_outbox(message_key,recipient,subject,body,kind) VALUES (?,?,?,?,?)", [key,to_email,subject,html,kind])
+    return _deliver_outbox_email(key)
+
+
 def deliver_trustid_notifications():
     # Durable outbox: pending alerts survive restarts; one worker sends them.
     with sqlite3.connect(DB_PATH) as con:
@@ -253,6 +292,7 @@ async def lifespan(app):
     async def notify_results():
         while True:
             try:
+                await asyncio.to_thread(deliver_pending_emails)
                 await asyncio.to_thread(deliver_trustid_notifications)
             except Exception:
                 logger.exception("TrustID result notification retry failed")
@@ -508,7 +548,7 @@ def case_token_supplied(
     return token
 
 
-def _brevo_send(to_email: str, subject: str, html: str, kind: str = "Notification") -> bool:
+def _brevo_deliver(to_email: str, subject: str, html: str, kind: str = "Notification") -> bool:
     """Low-level Brevo transactional send. Shared by the staff notification
     emails and the applicant-facing confirmation email.
 
@@ -563,13 +603,13 @@ def send_notification_email(subject: str, fields: dict, intro: str = "") -> bool
     """
     rows_html = "".join(
         f"<tr><td style='padding:4px 10px;color:#666;font-family:sans-serif;font-size:13px;"
-        f"vertical-align:top;white-space:nowrap;'>{k}</td>"
-        f"<td style='padding:4px 10px;font-family:sans-serif;font-size:13px;'>{v}</td></tr>"
+        f"vertical-align:top;white-space:nowrap;'>{html_escape(str(k))}</td>"
+        f"<td style='padding:4px 10px;font-family:sans-serif;font-size:13px;'>{html_escape(str(v))}</td></tr>"
         for k, v in fields.items()
     )
     html = (
         "<div style='font-family:sans-serif;font-size:14px;color:#111;'>"
-        + (f"<p>{intro}</p>" if intro else "")
+        + (f"<p>{html_escape(intro)}</p>" if intro else "")
         + f"<table style='border-collapse:collapse;margin-top:8px;'>{rows_html}</table></div>"
     )
     return _brevo_send(NOTIFICATION_EMAIL, subject, html, kind="Staff notification")
@@ -612,8 +652,8 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
             )
         else:
             next_steps = (
-                "<li>We are setting up your secure identity verification link now and will "
-                "email it to you shortly. No action is needed from you at this stage.</li>"
+                "<li>Your payment is recorded, but we could not issue your identity verification link automatically. "
+                "Our team has been alerted to resolve this. Do not pay again.</li>"
                 "<li>If you have not received it within one working day, reply to this email "
                 "quoting your case reference and we will resend it.</li>"
             )
@@ -1077,6 +1117,13 @@ def create_payment(
 
 
 def _refresh_payment_status(case_ref: str):
+    # Polling and Stripe webhooks can observe the same paid transition concurrently.
+    # The deployed service has one worker; serialize this transition and side effects.
+    with _payment_lock:
+        return _refresh_payment_status_locked(case_ref)
+
+
+def _refresh_payment_status_locked(case_ref: str):
     """Look up the authoritative payment status directly from the payment
     provider's own API (never from a caller-supplied value) and persist it.
     Called both from the public, token-checked endpoint below and from the
@@ -1290,21 +1337,24 @@ def trigger_verification(
     case_ref: str, passcode: Optional[str] = Depends(staff_passcode_supplied)
 ):
     require_staff_passcode(passcode)
-    record = get_application(case_ref)
-    if not record:
-        raise HTTPException(404, "Application not found")
-    result = trustid_client.create_guest_link(
-        first_name=record["first_name"] or (record["full_name"] or "").split(" ")[0],
-        last_name=record["last_name"] or " ".join((record["full_name"] or "").split(" ")[1:]),
-        email=record["email"],
-        reference=case_ref,
-    )
-    db.execute(
-        "UPDATE applications SET verification_status=?, verification_notes=?, updated_at=? WHERE case_ref=?",
-        [result["status"], result["notes"], time.strftime("%Y-%m-%d %H:%M:%S"), case_ref],
-    )
-    db.commit()
-    return get_application(case_ref)
+    with _verification_lock:
+        record = get_application(case_ref)
+        if not record:
+            raise HTTPException(404, "Application not found")
+        if record.get("payment_status") != "paid" or record.get("route") != "online":
+            raise HTTPException(409, "Only a paid online application can receive a TrustID invitation.")
+        if record.get("verification_status") in ("link_sent", "ready_for_review", "verified", "completed"):
+            return record
+        result = trustid_client.create_guest_link(
+            first_name=record["first_name"] or (record["full_name"] or "").split(" ")[0],
+            last_name=record["last_name"] or " ".join((record["full_name"] or "").split(" ")[1:]),
+            email=record["email"], reference=case_ref,
+        )
+        db.execute("UPDATE applications SET verification_status=?, verification_notes=?, updated_at=? WHERE case_ref=?",
+                   [result["status"], result["notes"], time.strftime("%Y-%m-%d %H:%M:%S"), case_ref])
+        db.commit()
+        logger.info("TrustID invitation retry for %s: %s", case_ref, result["status"])
+        return get_application(case_ref)
 
 
 @app.post("/api/webhooks/trustid/{case_ref}")

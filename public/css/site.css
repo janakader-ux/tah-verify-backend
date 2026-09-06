@@ -829,3 +829,7 @@ h4 {
   font-weight: 600;
   margin-top: auto;
 }
+
+/* Supplied DPC brand artwork; fixed dimensions prevent navigation layout shift. */
+.dpc-brand-logo { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; background: #fff; border-radius: 8px; padding: 3px; }
+@media (max-width: 480px) { .brand .dpc-brand-logo { width: 48px; height: 48px; } .brand__sub { max-width: 24ch; } }

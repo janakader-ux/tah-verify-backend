@@ -554,12 +554,14 @@
     submitStatus.classList.remove('is-error');
 
     try {
-      const createRes = await fetch(API + '/api/applications', {
+      const createRes = await caseFetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(applicationPayload()),
       });
+      if (!createRes.ok) throw new Error("Application could not be saved");
       const createData = await createRes.json();
+      if (!createData.access_token) throw new Error("Missing application access token");
       // The backend hands back a one-time access token for this case at
       // creation — required on every later call for this case_ref so that
       // guessing/enumerating case references alone can't read or modify
@@ -570,7 +572,8 @@
       // reliable notification channel; there is no separate third-party form
       // service in this flow, so applicant PII isn't shared with anyone
       // beyond this backend.
-      await caseFetch('/api/applications/' + encodeURIComponent(caseRefSlug()) + '/submitted', { method: 'POST' });
+      const submittedRes = await caseFetch('/api/applications/' + encodeURIComponent(caseRefSlug()) + '/submitted', { method: 'POST' });
+      if (!submittedRes.ok) throw new Error('Submission could not be confirmed');
 
       state.submitted = true;
       submitStatus.textContent = 'Application submitted. Taking you to payment…';
@@ -617,6 +620,7 @@
       });
       if (!res.ok) throw new Error('payment link request failed (' + res.status + ')');
       const data = await res.json();
+      if (!data.hosted_checkout_url || !data.checkout_id) throw new Error('Checkout unavailable');
       state.paymentUrl = data.hosted_checkout_url;
       state.paymentCheckoutId = data.checkout_id;
       showPayLink();
@@ -767,7 +771,7 @@
     appointmentStatus.textContent = 'Sending your appointment request…';
 
     try {
-      await caseFetch('/api/applications/' + encodeURIComponent(caseRefSlug()) + '/appointment', {
+      const appointmentRes = await caseFetch('/api/applications/' + encodeURIComponent(caseRefSlug()) + '/appointment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -776,6 +780,7 @@
           appointment_time_pref: appointmentTimePref.value,
         }),
       });
+      if (!appointmentRes.ok) throw new Error('Appointment could not be saved');
       // The backend records the appointment AND sends the staff notification
       // email itself (server-side, via Brevo) — no client-side email call needed.
 

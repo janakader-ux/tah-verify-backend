@@ -714,7 +714,7 @@ def config():
 
 
 @app.post("/api/applications", status_code=201)
-def create_application(app_in: ApplicationIn):
+def create_application(app_in: ApplicationIn, token: Optional[str] = Depends(case_token_supplied)):
     now = time.strftime("%Y-%m-%d %H:%M:%S")
 
     # Reject an unrecognised route before pricing, so a bad value surfaces as a
@@ -738,6 +738,9 @@ def create_application(app_in: ApplicationIn):
 
     existing = get_application(app_in.case_ref)
     if existing:
+        require_case_token(existing, token)
+        if existing.get("payment_checkout_id") or existing.get("payment_status") == "paid":
+            raise HTTPException(409, "Application cannot be changed after checkout has started. Contact support.")
         db.execute(
             """UPDATE applications SET full_name=?, first_name=?, last_name=?, email=?, residency=?,
                fee_amount=?, route=?, appointment_type=?, appointment_office=?, appointment_date=?,
@@ -966,6 +969,11 @@ def create_payment(
     if not record:
         raise HTTPException(404, "Application not found")
     require_case_token(record, token)
+
+    if record.get("payment_status") == "paid":
+        raise HTTPException(409, "This application has already been paid.")
+    if record.get("payment_checkout_id") and record.get("payment_url") and record.get("payment_status") == "pending":
+        return {"checkout_id": record["payment_checkout_id"], "hosted_checkout_url": record["payment_url"], "provider": record.get("payment_provider")}
 
     body = request_body or {}
     origin = body.get("origin", "").rstrip("/")

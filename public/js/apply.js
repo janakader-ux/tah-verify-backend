@@ -762,8 +762,8 @@
       appointmentOffice.focus();
       return;
     }
-    if (!appointmentDate.value) {
-      appointmentStatus.textContent = 'Please select a preferred date.';
+    if (!appointmentDate.value || !appointmentDate.validity.valid) {
+      appointmentStatus.textContent = 'Please select today or a future preferred date.';
       appointmentStatus.classList.add('is-error');
       appointmentDate.focus();
       return;

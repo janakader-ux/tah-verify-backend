@@ -68,20 +68,28 @@
 
 <link rel="stylesheet" href="./css/base.css" />
 <link rel="stylesheet" href="./css/tokens.css" />
-<link rel="stylesheet" href="./css/site.css" />
+<link rel="stylesheet" href="./css/site.css?v=20260906-pricing-review" />
 <link rel="stylesheet" href="./css/content.css" />
 
 <!-- ============ STRUCTURED DATA (@graph) ============ -->
-<script type="application/ld+json">
-{
+<script type="application/ld+json">{
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": ["FinancialService", "LegalService", "ProfessionalService", "AccountingService"],
+      "@type": [
+        "FinancialService",
+        "LegalService",
+        "ProfessionalService",
+        "AccountingService"
+      ],
       "@id": "https://directorpersonalcode.uk/#organization",
       "name": "Director Personal Code",
       "legalName": "Tax And Accounting Hub Ltd",
-      "alternateName": ["Tax & Accounting Hub Ltd", "Tax and Accounting Hub", "TAH Verify"],
+      "alternateName": [
+        "Tax & Accounting Hub Ltd",
+        "Tax and Accounting Hub",
+        "TAH Verify"
+      ],
       "url": "https://directorpersonalcode.uk/",
       "logo": {
         "@type": "ImageObject",
@@ -91,7 +99,9 @@
         "height": 192,
         "caption": "Director Personal Code"
       },
-      "image": { "@id": "https://directorpersonalcode.uk/#logo" },
+      "image": {
+        "@id": "https://directorpersonalcode.uk/#logo"
+      },
       "description": "Tax & Accounting Hub Ltd is a Companies House Authorised Corporate Service Provider (ACSP) that verifies the identity of directors, persons with significant control (PSCs), LLP members and general partners, then files the verification so Companies House issues the director personal code.",
       "foundingDate": "2013-04-01",
       "identifier": [
@@ -119,7 +129,7 @@
       },
       "telephone": "+44 7914 393183",
       "email": "info@taxandaccountinghub.com",
-      "priceRange": "£49–£175",
+      "priceRange": "£49–£125",
       "currenciesAccepted": "GBP",
       "address": {
         "@type": "PostalAddress",
@@ -129,11 +139,19 @@
         "postalCode": "MK42 0EG",
         "addressCountry": "GB"
       },
-      "geo": { "@type": "GeoCoordinates", "latitude": 52.1153895, "longitude": -0.4240855 },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 52.1153895,
+        "longitude": -0.4240855
+      },
       "hasMap": "https://maps.google.com/maps?cid=12590666811613322872",
       "location": [
-        { "@id": "https://directorpersonalcode.uk/#office-bedford" },
-        { "@id": "https://directorpersonalcode.uk/#office-london-stratford" }
+        {
+          "@id": "https://directorpersonalcode.uk/#office-bedford"
+        },
+        {
+          "@id": "https://directorpersonalcode.uk/#office-london-stratford"
+        }
       ],
       "knowsAbout": [
         "Companies House director personal code",
@@ -144,7 +162,9 @@
         "LLP member identity verification",
         "GOV.UK One Login identity verification"
       ],
-      "knowsLanguage": ["en-GB"],
+      "knowsLanguage": [
+        "en-GB"
+      ],
       "sameAs": [
         "https://www.taxandaccountinghub.com/",
         "https://find-and-update.company-information.service.gov.uk/company/08408126",
@@ -155,10 +175,12 @@
       "@type": "LocalBusiness",
       "@id": "https://directorpersonalcode.uk/#office-bedford",
       "name": "Director Personal Code — Bedford office",
-      "parentOrganization": { "@id": "https://directorpersonalcode.uk/#organization" },
+      "parentOrganization": {
+        "@id": "https://directorpersonalcode.uk/#organization"
+      },
       "url": "https://directorpersonalcode.uk/locations/index.html",
       "telephone": "+44 7914 393183",
-      "priceRange": "£49–£175",
+      "priceRange": "£49–£125",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "11 Holbeach Avenue, Shortstown",
@@ -167,16 +189,22 @@
         "postalCode": "MK42 0EG",
         "addressCountry": "GB"
       },
-      "geo": { "@type": "GeoCoordinates", "latitude": 52.1153895, "longitude": -0.4240855 }
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 52.1153895,
+        "longitude": -0.4240855
+      }
     },
     {
       "@type": "LocalBusiness",
       "@id": "https://directorpersonalcode.uk/#office-london-stratford",
       "name": "Director Personal Code — London (Stratford) office",
-      "parentOrganization": { "@id": "https://directorpersonalcode.uk/#organization" },
+      "parentOrganization": {
+        "@id": "https://directorpersonalcode.uk/#organization"
+      },
       "url": "https://directorpersonalcode.uk/locations/london.html",
       "telephone": "+44 7914 393183",
-      "priceRange": "£49–£175",
+      "priceRange": "£49–£125",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": "Hallings Wharf Studios, 1A Cam Road",
@@ -190,20 +218,31 @@
       "@type": "Service",
       "@id": "https://directorpersonalcode.uk/#service-idv",
       "name": "Companies House Identity Verification",
-      "alternateName": ["Director personal code verification", "ACSP identity verification"],
+      "alternateName": [
+        "Director personal code verification",
+        "ACSP identity verification"
+      ],
       "serviceType": "Companies House identity verification (ACSP)",
       "description": "Identity verification for directors, PSCs, LLP members and general partners, carried out by a Companies House Authorised Corporate Service Provider and filed on the applicant's behalf so that Companies House issues the director personal code.",
-      "provider": { "@id": "https://directorpersonalcode.uk/#organization" },
+      "provider": {
+        "@id": "https://directorpersonalcode.uk/#organization"
+      },
       "url": "https://directorpersonalcode.uk/acsp-service.html",
       "areaServed": [
-        { "@type": "Country", "name": "United Kingdom" },
-        { "@type": "AdministrativeArea", "name": "Worldwide (overseas directors of UK companies)" }
+        {
+          "@type": "Country",
+          "name": "United Kingdom"
+        },
+        {
+          "@type": "AdministrativeArea",
+          "name": "Worldwide (overseas directors of UK companies)"
+        }
       ],
       "offers": {
         "@type": "AggregateOffer",
         "priceCurrency": "GBP",
         "lowPrice": "125",
-        "highPrice": "175",
+        "highPrice": "125",
         "offerCount": "3",
         "url": "https://directorpersonalcode.uk/apply.html",
         "availability": "https://schema.org/InStock"
@@ -213,7 +252,10 @@
       "@type": "DefinedTerm",
       "@id": "https://directorpersonalcode.uk/#term-personal-code",
       "name": "Companies House director personal code",
-      "alternateName": ["director personal code", "Companies House personal code"],
+      "alternateName": [
+        "director personal code",
+        "Companies House personal code"
+      ],
       "description": "An 11-character code issued by Companies House to an individual once their identity has been verified. It belongs to the person rather than to any company, and it must be quoted when a director is appointed, when a company is incorporated, and when a company files its confirmation statement. One code covers every directorship and PSC role the person holds.",
       "inDefinedTermSet": {
         "@type": "DefinedTermSet",
@@ -226,22 +268,35 @@
       "@id": "https://directorpersonalcode.uk/#website",
       "url": "https://directorpersonalcode.uk/",
       "name": "Director Personal Code",
-      "publisher": { "@id": "https://directorpersonalcode.uk/#organization" },
+      "publisher": {
+        "@id": "https://directorpersonalcode.uk/#organization"
+      },
       "inLanguage": "en-GB"
     },
     {
-      "@type": ["WebPage", "FAQPage"],
+      "@type": [
+        "WebPage",
+        "FAQPage"
+      ],
       "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#webpage",
       "url": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html",
       "name": "Who Needs a Director Personal Code? Companies House Rules",
       "description": "Who has to verify their identity with Companies House and obtain a personal code — directors, people with significant control, LLP members and anyone filing on a company's behalf — plus overseas directors, deadlines, penalties and how one code covers every directorship.",
-      "isPartOf": { "@id": "https://directorpersonalcode.uk/#website" },
+      "isPartOf": {
+        "@id": "https://directorpersonalcode.uk/#website"
+      },
       "about": [
-        { "@id": "https://directorpersonalcode.uk/#term-personal-code" },
-        { "@id": "https://directorpersonalcode.uk/#service-idv" }
+        {
+          "@id": "https://directorpersonalcode.uk/#term-personal-code"
+        },
+        {
+          "@id": "https://directorpersonalcode.uk/#service-idv"
+        }
       ],
       "mentions": [
-        { "@id": "https://directorpersonalcode.uk/#organization" },
+        {
+          "@id": "https://directorpersonalcode.uk/#organization"
+        },
         {
           "@type": "Legislation",
           "name": "Economic Crime and Corporate Transparency Act 2023",
@@ -259,14 +314,22 @@
         "url": "https://directorpersonalcode.uk/assets/video/who-needs-a-code-poster.jpg",
         "caption": "Video: what a Companies House personal code is and who needs one"
       },
-      "video": { "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#video" },
-      "breadcrumb": { "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#breadcrumb" },
+      "video": {
+        "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#video"
+      },
+      "breadcrumb": {
+        "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#breadcrumb"
+      },
       "inLanguage": "en-GB",
       "datePublished": "2026-08-23",
       "dateModified": "2026-08-25",
       "speakable": {
         "@type": "SpeakableSpecification",
-        "cssSelector": [".content-hero__lead", ".checklist", ".faq-item__body"]
+        "cssSelector": [
+          ".content-hero__lead",
+          ".checklist",
+          ".faq-item__body"
+        ]
       },
       "mainEntity": [
         {
@@ -356,7 +419,9 @@
       "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#video",
       "name": "What is a Companies House personal code and who needs one?",
       "description": "A short explainer on who must verify their identity with Companies House and obtain a personal code — company directors, people with significant control, LLP members and anyone filing on a company's behalf — including overseas directors, the transition deadlines, the penalties for missing them, and why one code covers every directorship.",
-      "thumbnailUrl": ["https://directorpersonalcode.uk/assets/video/who-needs-a-code-poster.jpg"],
+      "thumbnailUrl": [
+        "https://directorpersonalcode.uk/assets/video/who-needs-a-code-poster.jpg"
+      ],
       "contentUrl": "https://directorpersonalcode.uk/assets/video/who-needs-a-code.mp4",
       "embedUrl": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#video-heading",
       "duration": "PT2M23S",
@@ -365,10 +430,18 @@
       "uploadDate": "2026-08-23",
       "inLanguage": "en-GB",
       "isFamilyFriendly": true,
-      "about": { "@id": "https://directorpersonalcode.uk/#term-personal-code" },
-      "isPartOf": { "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#webpage" },
-      "publisher": { "@id": "https://directorpersonalcode.uk/#organization" },
-      "creator": { "@id": "https://directorpersonalcode.uk/#organization" },
+      "about": {
+        "@id": "https://directorpersonalcode.uk/#term-personal-code"
+      },
+      "isPartOf": {
+        "@id": "https://directorpersonalcode.uk/who-needs-a-director-personal-code.html#webpage"
+      },
+      "publisher": {
+        "@id": "https://directorpersonalcode.uk/#organization"
+      },
+      "creator": {
+        "@id": "https://directorpersonalcode.uk/#organization"
+      },
       "transcript": "Who actually needs a Companies House personal code, and why does it matter so much? I get asked this every single day, so let me answer it properly. I'm from Tax and Accounting Hub Limited, an Authorised Corporate Service Provider, and this is Director Personal Code. First, what it is. A personal code is an 11-character code that Companies House issues to you once you have verified your identity. It belongs to you, not to your company. Think of it as proof, on the public record, that Companies House knows who you really are. So who needs one? Four groups. Company directors, or the equivalent role in your organisation. People with significant control — that is anyone who owns or controls more than 25% of the shares or voting rights. Members of a limited liability partnership. And anyone who files documents at Companies House on a company's behalf. Does this apply if you do not live in the UK? Yes. It is your role that triggers the requirement, not your address. If you are a director or a person with significant control of a UK company, you must verify, wherever in the world you happen to live. When? Identity verification became a legal requirement on 18 November 2025, and that opened a 12-month transition period. If you were already a director, your code has to appear on your company's next confirmation statement. If you are appointed, or you incorporate a new company, you need your code at the point of filing. Why does this matter? If you miss your deadline, you are committing an offence. Companies House can issue a financial penalty. You can be blocked from making any filings for the company. And you can be stopped from starting a new company at all. This is not a tick-box exercise — it has real consequences for you personally. One piece of good news. If you sit on several boards, you only verify once. The same personal code covers every appointment you hold, now and in the future. And if it is ever compromised, Companies House will cancel it and issue you a new one. How we help. As an Authorised Corporate Service Provider we verify you and file it directly with Companies House as your agent, online or in person, wherever you are based. Visit directorpersonalcode.uk and we will take it from there."
     },
     {
@@ -390,8 +463,7 @@
       ]
     }
   ]
-}
-</script>
+}</script>
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to content</a>
@@ -435,6 +507,7 @@
     <a href='/bulk-verification.html'>Bulk Verification</a>
   </nav>
 </header>
+<aside class="independent-notice" aria-label="Independent service disclosure"><div class="container">directorpersonalcode.uk is an independent corporate advisory service and is not affiliated with, endorsed by, or an official agency of Companies House or any government body. <a href="https://www.gov.uk/guidance/verifying-your-identity-for-companies-house">You may also be able to verify directly through GOV.UK for free.</a></div></aside>
 
 <main id="main">
 

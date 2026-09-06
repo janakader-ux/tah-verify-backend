@@ -2,3 +2,5 @@ fastapi
 uvicorn
 requests
 pydantic
+Pillow>=11.3,<13
+cryptography>=45,<48

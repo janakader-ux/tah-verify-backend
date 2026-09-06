@@ -16,6 +16,22 @@ if os.environ.get('CONTEXT')=='deploy-preview':
  (out/'checkout.html').write_text('''<!doctype html><html><head><meta name="robots" content="noindex,nofollow"><title>Dummy payment — no charge</title></head><body><h1>Dummy checkout — no real payment</h1><p>No card details are collected. This changes only the isolated preview fixture.</p><button id="paid">Simulate successful payment</button><button id="pending">Simulate declined payment</button><p id="status" role="status"></p><script>const key=new URLSearchParams(location.search).get('case');document.getElementById('paid').onclick=()=>{localStorage.setItem('qa-paid-'+key,'paid');document.getElementById('status').textContent='Dummy payment confirmed. Return to the application and check status.'};document.getElementById('pending').onclick=()=>{localStorage.removeItem('qa-paid-'+key);document.getElementById('status').textContent='Dummy card declined. No payment taken.'};</script></body></html>''')
  (out/'mobile.html').write_text('<!doctype html><html><head><meta name="robots" content="noindex,nofollow"><title>390px mobile workflow test</title></head><body><h1>Mobile viewport: 390 × 844</h1><iframe title="Mobile application" src="/__qa__/apply.html" style="width:390px;height:844px;border:1px solid #333"></iframe></body></html>')
  print('Isolated dummy-payment browser fixture generated for deploy preview.')
+ # A separate page uses real sandbox payments and real test email delivery.
+ # It never loads mock.js, and its API address cannot point at production.
+ staging=(root/'public/apply.html').read_text()
+ staging=re.sub(r'(src|href)="\./',r'\1="/',staging)
+ staging=staging.replace('<head>','<head><meta name="robots" content="noindex,nofollow" />')
+ staging=staging.replace('/js/apply.js?v=20260906-direct-payment2','/__qa__/staging-apply.js')
+ banner='<aside style="padding:20px;background:#fff4cf;color:#111"><strong>STAGING TEST — Stripe sandbox payments and real test emails.</strong> Use synthetic names and an email inbox you control. TrustID is disabled. Keep this application tab open during checkout.</aside>'
+ staging=staging.replace('<main',banner+'<main',1)
+ js=(root/'public/js/apply.js').read_text()
+ js=js.replace("'https://tah-verify-backend.onrender.com'", "'https://tah-verify-staging.onrender.com'")
+ guard="if(!/^deploy-preview-\\d+--directorpersonalcodeuk\\.netlify\\.app$/.test(location.hostname))throw Error('Staging form requires an isolated deploy preview');\n"
+ (out/'staging-apply.js').write_text(guard+js)
+ (out/'staging.html').write_text(staging)
+ # Stripe cancel links point to /apply.html; keep that route isolated too.
+ (root/'public/apply.html').write_text(staging)
+ (root/'public/payment-complete.html').write_text('<!doctype html><html><head><meta name="robots" content="noindex,nofollow"><title>Staging payment return</title></head><body><h1>Stripe sandbox payment return</h1><p>Return to your original staging application tab and check payment status. This page alone does not confirm payment. TrustID is disabled for this test.</p></body></html>')
 else:
  assert not out.exists()
  print('Production build: no dummy-payment fixtures.')

@@ -43,6 +43,8 @@ class WorkflowTests(unittest.TestCase):
             appointment='/api/applications/TEST-OFFICE/appointment'
             body={'appointment_office':'bedford','appointment_date':'2026-12-01','appointment_time_pref':'Morning'}
             self.assertEqual(client.post(appointment,json=body).status_code,403)
+            self.assertEqual(client.post(appointment,json=body,headers=office_headers).status_code,409)
+            api.db.execute("UPDATE applications SET payment_status='paid' WHERE case_ref='TEST-OFFICE'");api.db.commit()
             self.assertEqual(client.post(appointment,json=body,headers=office_headers).status_code,200)
             self.assertEqual(api.get_application('TEST-OFFICE')['appointment_office'],'bedford')
             self.assertGreaterEqual(staff_mail.call_count,3)

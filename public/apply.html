@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="./css/base.css" />
 <link rel="stylesheet" href="./css/tokens.css" />
 <link rel="stylesheet" href="./css/site.css?v=20260906-pricing-review" />
-<link rel="stylesheet" href="./css/apply.css" />
+<link rel="stylesheet" href="./css/apply.css?v=20260906-launch" />
 
 <script type="application/ld+json">{
   "@context": "https://schema.org",
@@ -447,6 +447,7 @@
             <div class="pay-online-card__status" id="payOnlineStatus" aria-live="polite">Preparing your secure card payment link…</div>
             <a href="#" class="btn btn-apply-primary btn-lg" id="payOnlineBtn" target="_blank" rel="noopener" hidden>Pay online now by card</a>
             <button type="button" class="btn btn-secondary-apply" id="checkPaymentBtn" hidden>I've paid — check status</button>
+            <button type="button" class="btn btn-secondary-apply" id="retryPaymentBtn" hidden>Prepare payment link again</button>
             <p class="field-help pay-online-card__badge" id="payOnlinePaidBadge" hidden>✅ Payment received — thank you.</p>
           </div>
 
@@ -540,7 +541,7 @@
       </section>
 
       <!-- WIZARD NAV -->
-      <div class="wizard-nav" id="wizardNav">
+      <div class="wizard-nav" id="wizardNav" aria-label="Application navigation"><p id="navigationHint" role="status"></p>
         <button type="button" class="btn btn-secondary-apply" data-action="back" hidden>Back</button>
         <button type="button" class="btn btn-apply-primary" data-action="next" disabled>Next</button>
       </div>
@@ -602,6 +603,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <script src="./js/mobile-nav.js"></script>
 <script src="./js/cookie-consent.js"></script>
-<script src="./js/apply.js?v=20260906-precheck" defer></script>
+<script src="./js/apply.js?v=20260906-launch" defer></script>
 </body>
 </html>

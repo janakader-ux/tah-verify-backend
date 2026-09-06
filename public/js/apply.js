@@ -59,7 +59,7 @@
   const state = {
     step: 1,
     route: null, // 'online' | 'in-person'
-    fee: null,   // set from PRICING: 49 | 125 | 175
+    fee: null,   // set from PRICING: 49 | 119 | 125
     feeLabel: '', // 'UK-based director' | 'Foreign / overseas director'
     signed: false,
     signTimestamp: null,
@@ -113,6 +113,7 @@
   }
 
   function goNext() {
+    if (!isStepValid(state.step)) return;
     if (state.step === 5 && !state.signed) return; // must sign before leaving the letter step
     if (state.step === 7 && state.paymentStatus !== 'paid') return;
     if (state.step === 6) return; // step 6 uses the Submit button, not Next
@@ -153,7 +154,7 @@
         if (!el.checked) return false;
         continue;
       }
-      if (!el.value || !el.value.trim()) return false;
+      if (!el.value || !el.value.trim() || !el.validity.valid) return false;
       if (el.pattern) {
         const re = new RegExp(el.pattern);
         if (!re.test(el.value.trim())) return false;
@@ -164,6 +165,15 @@
 
   function validateCurrentStep() {
     nextBtn.disabled = !isStepValid(state.step);
+    const hint = document.getElementById('navigationHint');
+    if (state.step === 2) {
+      hint.textContent = !document.getElementById('role').value ? 'Choose your role to continue.' :
+        !form.querySelector('input[name="residency"]:checked') ? 'Choose UK or overseas residency.' :
+        !form.querySelector('input[name="verifyRoute"]:checked') ? 'Choose Online or In-person to confirm your fee and continue.' : 'Your fee is confirmed. Continue to your details.';
+    } else if (state.step === 6) hint.textContent = 'Complete the document review above before payment.';
+    else if (state.step === 7) hint.textContent = state.paymentStatus === 'paid' ? 'Payment confirmed. Continue to your next steps.' : 'Next unlocks when the payment provider confirms payment.';
+    else if (state.step === 5) hint.textContent = state.signed ? 'Engagement signed. Continue to document review.' : 'Read and sign the engagement letter to continue.';
+    else hint.textContent = nextBtn.disabled ? 'Complete the required fields above to continue.' : 'Ready to continue.';
   }
 
   function markInvalid(el, invalid) {
@@ -585,6 +595,8 @@
   const checkPaymentBtn = document.getElementById('checkPaymentBtn');
   const payOnlinePaidBadge = document.getElementById('payOnlinePaidBadge');
   const willPay = document.getElementById('willPay');
+  const retryPaymentBtn = document.getElementById('retryPaymentBtn');
+  retryPaymentBtn.addEventListener('click',async()=>{state.paymentUrl=null;state.paymentCheckoutId=null;retryPaymentBtn.hidden=true;await initPaymentStep();});
   let paymentPollTimer = null;
 
   function setPayStatus(text, isError) {
@@ -619,7 +631,8 @@
       showPayLink();
       startPaymentPolling();
     } catch (err) {
-      setPayStatus('Payment is unavailable or your document review needs attention. Go back to the document review or contact our team; please do not make an alternative payment yet.', true);
+      setPayStatus('Payment is unavailable or your document review needs attention. Try preparing the payment link again or contact our team; please do not make an alternative payment yet.', true);
+      retryPaymentBtn.hidden=false;
     }
   }
 
@@ -632,6 +645,7 @@
   }
 
   function showPaidState() {
+    retryPaymentBtn.hidden=true;
     setPayStatus('');
     payOnlineBtn.hidden = true;
     checkPaymentBtn.hidden = true;
@@ -651,8 +665,10 @@
   async function checkPaymentStatus() {
     try {
       const res = await caseFetch('/api/applications/' + encodeURIComponent(caseRefSlug()) + '/payment-status');
+      if (!res.ok) throw new Error('Payment status unavailable');
       const data = await res.json();
       state.paymentStatus = data.payment_status;
+      if (['expired','failed'].includes(data.payment_status)) { payOnlineBtn.hidden=true;retryPaymentBtn.hidden=false;stopPaymentPolling();setPayStatus('This payment link has expired or failed. Prepare a new link to try again.'); }
       if (data.payment_status === 'paid') {
         showPaidState();
         // The backend detects the pending -> paid transition itself (this same
@@ -746,8 +762,8 @@
       appointmentOffice.focus();
       return;
     }
-    if (!appointmentDate.value) {
-      appointmentStatus.textContent = 'Please select a preferred date.';
+    if (!appointmentDate.value || !appointmentDate.validity.valid) {
+      appointmentStatus.textContent = 'Please select today or a future preferred date.';
       appointmentStatus.classList.add('is-error');
       appointmentDate.focus();
       return;

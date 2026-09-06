@@ -1,6 +1,6 @@
-# Original static frontend. No bundler or build step.
+# Static frontend; generate isolated test fixtures only in deploy previews.
 # Keep the Render backend and internal documents outside the public directory.
 [build]
   base = "."
-  command = ""
+  command = "python3 scripts/build_qa_preview.py"
   publish = "public"

@@ -650,7 +650,7 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
 def health():
     return {
         "status": "ok",
-        "release": "2026-09-06-document-review",
+        "release": "2026-09-06-launch-validation",
         "stripe_configured": bool(STRIPE_TOKEN),
         "sumup_configured": bool(SUMUP_BASE_URL and SUMUP_TOKEN and SUMUP_MERCHANT_CODE),
         "active_payment_provider": "stripe" if STRIPE_TOKEN else ("sumup" if (SUMUP_TOKEN and SUMUP_MERCHANT_CODE) else None),
@@ -868,6 +868,17 @@ def request_appointment(
     if not record:
         raise HTTPException(404, "Application not found")
     require_case_token(record, token)
+    if record.get('route') != 'in-person':
+        raise HTTPException(409, 'An office appointment requires the in-person route.')
+    if record.get('payment_status') != 'paid':
+        raise HTTPException(409, 'Payment must be confirmed before requesting an appointment.')
+    from datetime import date
+    try:
+        preferred = date.fromisoformat(body.appointment_date or '')
+    except ValueError:
+        raise HTTPException(400, 'Choose a valid appointment date.')
+    if preferred < date.today() or body.appointment_office not in ('bedford','london') or body.appointment_time_pref not in ('Morning','Afternoon','Any time','Morning (9:30–12:30)','Early afternoon (12:30–15:00)','Late afternoon (15:00–17:30)'):
+        raise HTTPException(400, 'Choose an available office, a future date and a preferred time.')
     db.execute(
         """UPDATE applications SET appointment_type='in-person', appointment_office=?,
            appointment_date=?, appointment_time_pref=?, updated_at=? WHERE case_ref=?""",

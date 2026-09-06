@@ -624,3 +624,12 @@ fieldset.field { border: none; padding: 0; }
   .bank-row { grid-template-columns: 1fr; }
   .copy-btn { justify-self: stretch; text-align: center; }
 }
+
+/* Persistent navigation stays visible on small screens and above notices. */
+body:has(#wizardForm) { padding-bottom: 8rem; }
+.wizard-nav { position:fixed; inset:auto 0 0; z-index:350; margin:0; padding:12px max(16px,calc((100vw - 832px)/2)) calc(12px + env(safe-area-inset-bottom)); display:grid; grid-template-columns:1fr auto; gap:8px 16px; background:#0c141a; border-top:1px solid #425463; box-shadow:0 -4px 20px #0003; }
+#navigationHint { grid-column:1/-1; margin:0; color:#d5e1e8; font-size:13px; line-height:1.4; }
+.wizard-nav [data-action="next"] { grid-column:2; }
+.wizard-nav button { width:auto; min-height:44px; }
+body:has(#wizardForm) .cookie-banner { bottom:calc(8rem + env(safe-area-inset-bottom)); }
+@media(max-width:480px) { .wizard-nav { grid-template-columns:1fr 1fr; } .wizard-nav button { width:100%; min-width:0; } }

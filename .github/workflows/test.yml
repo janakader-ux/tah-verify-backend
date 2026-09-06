@@ -29,6 +29,8 @@ jobs:
           python test_pricing.py
           python scripts/tests/test_workflow.py
           python scripts/tests/test_document_review.py
+          python scripts/tests/test_launch_matrix.py
+          python scripts/build_qa_preview.py
           python scripts/tests/test_static.py
           node --check public/js/apply.js
           node --test scripts/tests/test_frontend.cjs

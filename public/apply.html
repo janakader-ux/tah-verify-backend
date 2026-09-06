@@ -130,7 +130,7 @@
         <div class="step-card step-card--start">
           <span class="eyebrow eyebrow--neon">Before you begin</span>
           <h2 id="step1-heading">Let's get your identity verified for Companies House</h2>
-          <p>This guided application collects everything we need to act as your Authorised Corporate Service Provider: your details, your signed engagement letter, preliminary document photographs and your payment. There's documents reviewed before payment here — your identity check itself happens afterwards, either through a secure online portal or at an appointment, depending on the route you choose.</p>
+          <p>This guided application collects everything we need to act as your Authorised Corporate Service Provider: your details, your signed engagement letter, preliminary document photographs and your payment. We review your document photographs before payment — your identity check itself happens afterwards, either through a secure online portal or at an appointment, depending on the route you choose.</p>
           <ul class="start-facts">
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Takes about 5 minutes</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2 3 6v6c0 5 3.8 8.7 9 10 5.2-1.3 9-5 9-10V6z"/><path d="m9 12 2 2 4-4"/></svg> Preliminary document review before payment</li>
@@ -311,7 +311,7 @@
             </ul>
 
             <h4>2. Fee</h4>
-            <p>Our fee for this service is <strong id="letterFee">£49, all-inclusive</strong>, based on the residency status and verification route you selected earlier in this application (<span id="letterFeeBasis">UK-based director — remote check</span>). Payment is due after you submit this application and before we open your identity verification link or confirm an appointment, and is collected securely online.</p>
+            <p>Our fee for this service is <strong id="letterFee">£49, all-inclusive</strong>, based on the residency status and verification route you selected earlier in this application (<span id="letterFeeBasis">UK-based director — remote check</span>). Payment is due only after the preliminary document review is complete, before we open your identity verification link or confirm an appointment. It is collected securely online.</p>
 
             <h4>3. How your identity will be verified</h4>
             <p>We ask you to upload clear document photographs for a preliminary suitability review before payment. This is not identity verification. You must still present your original documents through TrustID or at your appointment. Depending on the route you selected:</p>
@@ -331,10 +331,10 @@
 
             <h4>5. Data protection</h4>
             <p>Tax And Accounting Hub Ltd is the data controller for the personal data you provide. Our lawful basis for processing is the performance of a legal obligation arising under UK corporate transparency and anti-money-laundering law. Where biometric data is processed (for facial matching and fraud prevention), this is done under the substantial public interest condition of the Data Protection Act 2018.</p>
-            <p>We use TrustID as our identity verification sub-processor for digital checks. Companies House receives only your name, date of birth, home address, email address, and document type/reference/expiry/country of issue — it does not receive copies of your documents. Once your personal code is connected to your Companies House record, the public register will show your name, our firm name as your ACSP, our AML supervisory body, and the date your checks were completed — it will not show your documents or home address.</p>
+            <p>We use TrustID as our identity verification sub-processor for digital checks. Preliminary photographs are encrypted and expire from active storage after seven days. Optional AI assistance shares photographs, name and date of birth with OpenAI only when selected; you can choose team review instead. See our <a href="/privacy#preliminary-documents" target="_blank" rel="noopener">privacy notice</a> for details. Companies House receives only your name, date of birth, home address, email address, and document type/reference/expiry/country of issue — it does not receive copies of your documents. Once your personal code is connected to your Companies House record, the public register will show your name, our firm name as your ACSP, our AML supervisory body, and the date your checks were completed — it will not show your documents or home address.</p>
 
             <h4>6. Record retention</h4>
-            <p>We retain all records relating to this engagement, including failed verification attempts, for 7 years from the date the engagement is completed, after which they are securely destroyed. This retention period cannot be shortened at your request, as it is required by law.</p>
+            <p>Preliminary document photographs expire from active storage after seven days. We retain formal identity-verification records, including failed verification attempts, for 7 years from the date the engagement is completed, after which they are securely destroyed. This retention period cannot be shortened at your request, as it is required by law.</p>
 
             <h4>7. Liability, confidentiality and termination</h4>
             <p>Our liability under this engagement is capped at the fee you paid (£49 to £125, as applicable to your case), except where liability cannot lawfully be limited. We will keep your information confidential, save where we are required by law to make a report (for example, under money laundering regulations) — we are not permitted to notify you if such a report is made. Either party may terminate this engagement by written notice; fees for work already completed remain payable. This engagement is governed by the law of England and Wales.</p>
@@ -412,7 +412,7 @@
 
           <div class="review-summary" id="reviewSummary"></div><section class="document-review-panel" aria-labelledby="document-review-heading">
 <h3 id="document-review-heading">Check your documents before you pay</h3>
-<p>Online: upload a clear photograph of your original passport data page, or your proposed identity document for team review. Office appointments: upload two proposed documents — either two qualifying photo IDs, or one qualifying photo ID plus a supporting document. Overseas residents need at least one government-issued document.</p>
+<p>Online: upload a clear photograph of your original passport data page, or your proposed identity document for team review. Office appointments: upload two proposed documents — either two qualifying Group A documents, or one Group A document plus one Group B supporting document. Overseas residents need at least one government-issued document.</p>
 <p>Show all edges and readable details. JPEG or PNG only, up to 2 MB each; maximum three photographs. <a href="https://www.gov.uk/guidance/how-to-meet-companies-house-identity-verification-standard" target="_blank" rel="noopener">Read the document guidelines</a>. We check suitability and readability here; authenticity and liveness checks happen separately after payment.</p>
 <label for="precheckFiles">Document photographs</label><input id="precheckFiles" type="file" accept="image/jpeg,image/png" multiple />
 <label class="checkbox-label"><input id="documentConsent" type="checkbox" /> <span>I am authorised to provide these documents and have read the <a href="/privacy#preliminary-documents">document-review privacy notice</a>. I understand this is a preliminary review, not identity verification.</span></label>

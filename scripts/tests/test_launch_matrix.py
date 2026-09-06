@@ -29,11 +29,8 @@ class LaunchMatrix(unittest.TestCase):
      self.assertEqual(c.post(url+'/payment',headers=h).status_code,409)
      body={'appointment_office':'bedford','appointment_date':str(date.today()+timedelta(days=7)),'appointment_time_pref':'Morning (9:30–12:30)'}
      self.assertEqual(c.post(url+'/appointment',headers=h,json=body).status_code,409)
-     upload=c.post(url+'/documents',headers=h,json={'consent':True,'use_ai':False,'files':[photo()]*(2 if route=='in-person' else 1)})
-     self.assertEqual(upload.status_code,200);self.assertEqual(upload.json()['status'],'manual')
-     self.assertEqual(c.post(url+'/payment',headers=h).status_code,409);checkout.assert_not_called();identity.assert_not_called()
-     decision=c.post('/api/staff/applications/'+ref+'/document-review',headers=staff,json={'version':upload.json()['version'],'approved':True,'note':'Synthetic preliminary review completed'})
-     self.assertEqual(decision.status_code,200);self.assertEqual(decision.json()['status'],'ready')
+     # An older application flag must no longer block a signed submission.
+     api.db.execute('UPDATE applications SET document_review_required=1 WHERE case_ref=?',[ref]);api.db.commit()
      self.assertEqual(c.post(url+'/submitted',headers=h).status_code,200)
      checkout.return_value=('cs_dummy_'+ref,'https://checkout.stripe.com/test-only')
      payment=c.post(url+'/payment',headers=h);self.assertEqual(payment.status_code,200);self.assertEqual(checkout.call_args.args[1]['fee_amount'],fee)
@@ -41,7 +38,7 @@ class LaunchMatrix(unittest.TestCase):
      # An unpaid/declined card must not mark the application paid or start TrustID.
      provider.return_value={'payment_status':'unpaid','status':'open'}
      self.assertEqual(c.get(url+'/payment-status',headers=h).json()['payment_status'],'pending');identity.assert_not_called();receipt.assert_not_called()
-     # Expired checkouts can be replaced only while document approval is valid.
+     # Expired checkouts can be replaced after a signed application.
      provider.return_value={'payment_status':'unpaid','status':'expired'}
      self.assertEqual(c.get(url+'/payment-status',headers=h).json()['payment_status'],'expired')
      checkout.return_value=('cs_dummy_retry_'+ref,'https://checkout.stripe.com/test-only-retry')
@@ -60,6 +57,6 @@ class LaunchMatrix(unittest.TestCase):
      self.assertEqual(row['payment_status'],'paid');self.assertEqual(row['fee_amount'],fee);self.assertTrue(row['submitted'])
      if route=='online':self.assertEqual(row['verification_status'],'link_sent')
      else:self.assertEqual(row['appointment_office'],'bedford')
-     print(f'PASS {residency}/{route}: £{fee}, review → unpaid/expired → paid → '+('TrustID' if route=='online' else 'office request')+'; staff paid status confirmed')
+     print(f'PASS {residency}/{route}: £{fee}, signed application → unpaid/expired → paid → '+('TrustID' if route=='online' else 'office request')+'; staff paid status confirmed')
 
 if __name__=='__main__':unittest.main()

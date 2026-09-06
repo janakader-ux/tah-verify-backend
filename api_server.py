@@ -224,15 +224,46 @@ for _col, _decl in [
 db.commit()
 
 
+db.execute("""CREATE TABLE IF NOT EXISTS trustid_result_notifications (
+    container_id TEXT PRIMARY KEY, case_ref TEXT NOT NULL, sent INTEGER DEFAULT 0
+)""")
+db.commit()
+
+
+def deliver_trustid_notifications():
+    # Durable outbox: pending alerts survive restarts; one worker sends them.
+    with sqlite3.connect(DB_PATH) as con:
+        pending = con.execute("SELECT container_id, case_ref FROM trustid_result_notifications WHERE sent=0 LIMIT 20").fetchall()
+        for container_id, case_ref in pending:
+            if send_notification_email(
+                f"TrustID result ready — Case {case_ref}",
+                {"Case reference": case_ref, "TrustID application": container_id},
+                intro="TrustID has finished processing. Open the TrustID portal, review the documents and result, then complete the required compliance checks before submitting the verification statement to Companies House. This notification is not an identity approval.",
+            ):
+                con.execute("UPDATE trustid_result_notifications SET sent=1 WHERE container_id=?", [container_id])
+                con.commit()
+
+
 @asynccontextmanager
 async def lifespan(app):
     async def cleanup():
         while True:
             await asyncio.to_thread(lambda: document_review.connect(DB_PATH).close())
             await asyncio.sleep(3600)
+    async def notify_results():
+        while True:
+            try:
+                await asyncio.to_thread(deliver_trustid_notifications)
+            except Exception:
+                logger.exception("TrustID result notification retry failed")
+            await asyncio.sleep(30)
+    notify_task = asyncio.create_task(notify_results())
     task=asyncio.create_task(cleanup())
     try: yield
     finally:
+        notify_task.cancel()
+        try: await notify_task
+        except asyncio.CancelledError: pass
         task.cancel()
         try: await task
         except asyncio.CancelledError: pass
@@ -650,7 +681,7 @@ def send_payment_confirmation_email(case_ref: str, record: dict, online_link_sen
 def health():
     return {
         "status": "ok",
-        "release": "2026-09-06-launch-validation",
+        "release": "2026-09-06-direct-payment",
         "stripe_configured": bool(STRIPE_TOKEN),
         "sumup_configured": bool(SUMUP_BASE_URL and SUMUP_TOKEN and SUMUP_MERCHANT_CODE),
         "active_payment_provider": "stripe" if STRIPE_TOKEN else ("sumup" if (SUMUP_TOKEN and SUMUP_MERCHANT_CODE) else None),
@@ -718,7 +749,7 @@ def config():
     return {
         "pricing": PRICING,
         "bulk_pricing": {"uk":39,"overseas":85,"minimum":10},
-        "document_review": {"available":document_review.configured(),"ai_available":document_review.ai_configured()},
+        "document_review": {"available":False,"ai_available":False,"required":False},
         "trustid_guest_link_portal_url": trustid_client.TRUSTID_PORTAL_GUEST_LINK_URL,
         "offices": {
             "london": {
@@ -797,8 +828,6 @@ def create_application(app_in: ApplicationIn, token: Optional[str] = Depends(cas
                 secrets.token_urlsafe(24),
             ],
         )
-    if not existing:
-        db.execute("UPDATE applications SET document_review_required=1 WHERE case_ref=?", (app_in.case_ref,))
     db.commit()
     return get_application(app_in.case_ref)
 
@@ -809,6 +838,10 @@ def mark_submitted(case_ref: str, token: Optional[str] = Depends(case_token_supp
     if not record:
         raise HTTPException(404, "Application not found")
     require_case_token(record, token)
+    if not record.get("sign_name") or not record.get("sign_date"):
+        raise HTTPException(409, "Sign the engagement letter before submitting your application.")
+    if record.get("submitted"):
+        return record
     db.execute(
         "UPDATE applications SET submitted=1, updated_at=? WHERE case_ref=?",
         [time.strftime("%Y-%m-%d %H:%M:%S"), case_ref],
@@ -1005,8 +1038,8 @@ def create_payment(
 
     if record.get("payment_status") == "paid":
         raise HTTPException(409, "This application has already been paid.")
-    if record.get("document_review_required") and not document_review.payment_allowed(DB_PATH, record):
-        raise HTTPException(409, "Complete the preliminary document review before payment.")
+    if not record.get("submitted") or not record.get("sign_name") or not record.get("sign_date"):
+        raise HTTPException(409, "Complete your application and sign the engagement letter before payment.")
     if record.get("payment_checkout_id") and record.get("payment_url") and record.get("payment_status") == "pending":
         return {"checkout_id": record["payment_checkout_id"], "hosted_checkout_url": record["payment_url"], "provider": record.get("payment_provider")}
 
@@ -1274,12 +1307,36 @@ def trigger_verification(
     return get_application(case_ref)
 
 
+@app.post("/api/webhooks/trustid/{case_ref}")
+def trustid_result_webhook(case_ref: str, payload: dict, callback_token: Optional[str] = Header(None, alias="X-TrustID-Callback-Token")):
+    expected = trustid_client.callback_token(case_ref)
+    if not expected or not callback_token or not hmac.compare_digest(expected, callback_token):
+        raise HTTPException(403, "Invalid callback credential")
+    record = get_application(case_ref)
+    if not record or record.get("payment_status") != "paid" or record.get("route") != "online":
+        raise HTTPException(409, "No paid remote application for this callback")
+    callback = payload.get("Callback") or {}
+    response = payload.get("Response") or {}
+    if callback.get("WorkflowName") != "AutoReferral" or callback.get("WorkflowState") != "Stop" or callback.get("Aborted"):
+        return {"received": True, "queued": False}
+    container_id = response.get("ContainerId")
+    if not isinstance(container_id, str) or not container_id or len(container_id) > 100:
+        raise HTTPException(400, "Missing TrustID application identifier")
+    storage = {item.get("Key"): item.get("Value") for item in callback.get("WorkflowStorage", []) if isinstance(item, dict)}
+    if storage.get("ClientApplicationReference") not in (None, case_ref):
+        raise HTTPException(400, "Callback reference mismatch")
+    # A completed result may pass or fail. Never mark identity verified here.
+    with sqlite3.connect(DB_PATH) as con:
+        inserted = con.execute("INSERT OR IGNORE INTO trustid_result_notifications(container_id,case_ref) VALUES (?,?)", [container_id,case_ref]).rowcount
+        if inserted:
+            con.execute("UPDATE applications SET verification_status='ready_for_review', verification_notes=?, updated_at=? WHERE case_ref=?",
+                        ["TrustID result ready; staff must review in the TrustID portal before Companies House submission.",time.strftime("%Y-%m-%d %H:%M:%S"),case_ref])
+    return {"received": True, "queued": bool(inserted)}
+
+
 @app.post("/api/webhooks/trustid")
-async def trustid_webhook(payload: dict):
-    # Placeholder — exact payload shape to be confirmed with TrustID's account
-    # manager. Once known, look up the application by reference and update
-    # verification_status to 'passed' / 'failed' / 'in_review' accordingly.
-    return {"received": True, "note": "TrustID webhook handling not yet wired in"}
+def legacy_trustid_webhook():
+    raise HTTPException(409, "Use the authenticated per-application callback supplied with the Guest Link")
 
 
 @app.get("/api/applications")

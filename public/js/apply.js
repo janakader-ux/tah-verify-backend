@@ -113,7 +113,12 @@
   }
 
   function goNext() {
-    if (!isStepValid(state.step)) return;
+    if (!isStepValid(state.step)) {
+      validateCurrentStep();
+      const invalid = fieldsFor(state.step).find(el => !el.checkValidity());
+      if (invalid) { invalid.focus(); invalid.reportValidity(); }
+      return;
+    }
     if (state.step === 5 && !state.signed) return; // must sign before leaving the letter step
     if (state.step === 7 && state.paymentStatus !== 'paid') return;
     if (state.step === 6) return; // step 6 uses the Submit button, not Next
@@ -127,6 +132,7 @@
   document.querySelector('[data-action="begin"]').addEventListener('click', () => showStep(2));
   nextBtn.addEventListener('click', goNext);
   backBtn.addEventListener('click', goBack);
+  form.addEventListener('submit', event => { event.preventDefault(); if (state.step !== 6) goNext(); });
 
   /* ---------------- Validation per step ---------------- */
 
@@ -164,16 +170,22 @@
   }
 
   function validateCurrentStep() {
-    nextBtn.disabled = !isStepValid(state.step);
+    const valid = isStepValid(state.step);
+    nextBtn.disabled = state.step === 7 && !valid;
+    nextBtn.setAttribute('aria-describedby', 'navigationHint');
     const hint = document.getElementById('navigationHint');
     if (state.step === 2) {
       hint.textContent = !document.getElementById('role').value ? 'Choose your role to continue.' :
         !form.querySelector('input[name="residency"]:checked') ? 'Choose UK or overseas residency.' :
         !form.querySelector('input[name="verifyRoute"]:checked') ? 'Choose Online or In-person to confirm your fee and continue.' : 'Your fee is confirmed. Continue to your details.';
-    } else if (state.step === 6) hint.textContent = 'Complete the document review above before payment.';
+    } else if (state.step === 6) hint.textContent = 'Check your application details, then continue to secure payment.';
     else if (state.step === 7) hint.textContent = state.paymentStatus === 'paid' ? 'Payment confirmed. Continue to your next steps.' : 'Next unlocks when the payment provider confirms payment.';
-    else if (state.step === 5) hint.textContent = state.signed ? 'Engagement signed. Continue to document review.' : 'Read and sign the engagement letter to continue.';
-    else hint.textContent = nextBtn.disabled ? 'Complete the required fields above to continue.' : 'Ready to continue.';
+    else if (state.step === 5) hint.textContent = state.signed ? 'Engagement signed. Continue to your application summary.' : 'Read and sign the engagement letter to continue.';
+    else {
+      const invalid = fieldsFor(state.step).find(el => !el.checkValidity());
+      const label = invalid && (invalid.labels && invalid.labels[0]);
+      hint.textContent = invalid ? 'Please complete or correct: ' + (label ? label.textContent.trim() : invalid.name) + '.' : 'Ready to continue.';
+    }
   }
 
   function markInvalid(el, invalid) {
@@ -186,7 +198,13 @@
     }
     validateCurrentStep();
   });
-  form.addEventListener('change', () => validateCurrentStep());
+  form.addEventListener('change', (event) => {
+    if (state.signed && !state.submitted && !state.resuming && event.target.matches('input,select,textarea') && state.step <= 5) {
+      state.signed = false;
+      signStatus.textContent = 'Your details changed. Please sign the engagement letter again.';
+    }
+    validateCurrentStep();
+  });
 
   /* ---------------- Step 2: price + route logic ---------------- */
 
@@ -442,7 +460,7 @@
 
   function buildReview() {
     generateCaseRef();
-    if (state.resuming) { reviewSummary.textContent = 'Your previously saved application and signed engagement are on file. Check the document-review status below to continue.'; caseRefDisplay.textContent = state.caseRef; return; }
+    if (state.resuming) { reviewSummary.textContent = 'Your previously saved application and signed engagement are on file. Continue to secure payment below.'; caseRefDisplay.textContent = state.caseRef; return; }
     caseRefDisplay.textContent = state.caseRef;
     payReference.textContent = 'TAHV-' + state.caseRef;
     payReference.dataset.copyValue = 'TAHV-' + state.caseRef;
@@ -560,7 +578,8 @@
 
   submitBtn.addEventListener('click', async () => {
     if (state.submitted) return;
-    if (!state.reviewReady) { submitStatus.textContent = 'Complete the preliminary document review first.'; return; }
+    if (!state.signed) { showStep(5); return; }
+    if (!state.resuming) { for (const step of [2,3,4]) { if (!isStepValid(step)) { showStep(step); return; } } }
     generateCaseRef();
     submitBtn.disabled = true;
     submitStatus.textContent = 'Submitting your application securely…';
@@ -568,8 +587,7 @@
 
     try {
       await saveReviewDraft();
-      await refreshDocumentReview();
-      if (!state.reviewReady) throw new Error('Document review is not complete');
+
       // The backend marks the application submitted AND sends the staff
       // notification email itself (server-side, via Brevo) — that's the
       // reliable notification channel; there is no separate third-party form
@@ -811,7 +829,7 @@
     const paidByCard = state.paymentStatus === 'paid';
     if (state.route === 'online') {
       msg.textContent = paidByCard
-        ? "Thank you — your card payment is confirmed and your application is with our team. We'll email you a secure link to complete your online identity check within 1 working day."
+        ? "Thank you — your card payment is confirmed and your application is with our team. TrustID sends your secure guest link by email after payment. Check your inbox and spam folder; contact our team if it has not arrived within 10 minutes. After your check, our team reviews the result before the Companies House submission."
         : "Thank you — your application is with our team. Once your bank transfer clears (using the reference shown on the payment step), we'll email you a secure link to complete your online identity check within 1 working day.";
     } else {
       msg.textContent = paidByCard
@@ -900,68 +918,17 @@
   document.querySelector('[data-action="download-pdf"]').addEventListener('click', generateLetterPdf);
 
 
-  state.reviewReady = false;
   state.draftSaved = false;
-  const reviewStatus = document.getElementById('documentReviewStatus');
-  const uploadReviewBtn = document.getElementById('uploadReviewBtn');
-  const reviewFiles = document.getElementById('precheckFiles');
-  reviewFiles.addEventListener('change',()=>{state.reviewReady=false;submitBtn.disabled=true;});
   async function saveReviewDraft() {
     if (state.draftSaved || state.resuming) return;
     generateCaseRef();
     const response = await caseFetch('/api/applications', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(applicationPayload())});
     if (!response.ok) throw new Error('Your application could not be saved. Please check your details and try again.');
-    const data=await response.json();
+    const data = await response.json();
     if (!data.access_token) throw new Error('Secure application access could not be established.');
-    state.accessToken=data.access_token; state.draftSaved=true;
+    state.accessToken = data.access_token; state.draftSaved = true;
   }
-  async function refreshDocumentReview() {
-    if (!state.accessToken) throw new Error('Upload your documents first.');
-    const response=await caseFetch('/api/applications/'+encodeURIComponent(caseRefSlug())+'/document-review');
-    if (!response.ok) throw new Error('Unable to check the review. Please try again.');
-    const data=await response.json();
-    state.reviewReady=data.status==='ready';
-    reviewStatus.textContent=data.message;
-    submitBtn.disabled=!state.reviewReady;
-    if (state.resuming) {
-      state.route=data.route;state.fee=data.fee_amount;state.feeLabel='Previously saved application';
-      payTotal.textContent='£'+data.fee_amount;priceChipAmount.textContent='£'+data.fee_amount;
-    }
-    return data;
-  }
-  function fileBase64(file) { return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(new Error('Unable to read photograph.'));reader.readAsDataURL(file);}); }
-  uploadReviewBtn.addEventListener('click',async()=>{
-    uploadReviewBtn.disabled=true;submitBtn.disabled=true;state.reviewReady=false;
-    try {
-      const files=Array.from(reviewFiles.files||[]);
-      if (!document.getElementById('documentConsent').checked) throw new Error('Please confirm the document-review privacy notice.');
-      if (!files.length || files.length>3 || files.some(f=>!['image/jpeg','image/png'].includes(f.type)||f.size>2000000)) throw new Error('Choose one to three JPEG or PNG photographs, no larger than 2 MB each.');
-      reviewStatus.textContent='Uploading securely for preliminary review. No payment is being taken…';
-      await saveReviewDraft();
-      const body={consent:true,use_ai:document.getElementById('useAiReview').checked,files:await Promise.all(files.map(async f=>({data:await fileBase64(f)})))};
-      const response=await caseFetch('/api/applications/'+encodeURIComponent(caseRefSlug())+'/documents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      const data=await response.json();
-      if (!response.ok) throw new Error(typeof data.detail==='string'?data.detail:'Document upload failed. Please try again.');
-      reviewFiles.value='';await refreshDocumentReview();
-    } catch(error) { reviewStatus.textContent=error.message; }
-    finally { uploadReviewBtn.disabled=false; }
-  });
-  document.getElementById('checkReviewBtn').addEventListener('click',()=>refreshDocumentReview().catch(e=>{reviewStatus.textContent=e.message;}));
-  document.getElementById('saveReviewLinkBtn').addEventListener('click',async()=>{
-    if (!state.accessToken) {reviewStatus.textContent='Upload your documents first, then save your private return link.';return;}
-    const url=location.origin+'/apply#resume='+encodeURIComponent(caseRefSlug())+'~'+encodeURIComponent(state.accessToken);
-    try {await navigator.clipboard.writeText(url);reviewStatus.textContent='Private return link copied. Keep it safe and do not share it; it gives access to this application.';}
-    catch {reviewStatus.textContent='Copying is unavailable. Keep this tab open to return to your review.';}
-  });
-  form.addEventListener('input',event=>{
-    if (event.target.closest('.document-review-panel') || state.resuming || state.submitted) return;
-    state.reviewReady=false;state.draftSaved=false;submitBtn.disabled=true;
-  });
-  fetch(API+'/api/config').then(r=>r.json()).then(data=>{
-    const capability=data.document_review||{};
-    document.getElementById('useAiReview').disabled=!capability.ai_available;
-    document.getElementById('documentReviewMode').textContent=capability.ai_available?'Choose AI-assisted or team review. Unclear results always go to our team.':'A member of our team will complete your preliminary review before payment. Use the private return link to check the outcome.';
-  }).catch(()=>{document.getElementById('useAiReview').disabled=true;document.getElementById('documentReviewMode').textContent='We will confirm review availability when you upload.';});
+  form.addEventListener('input', () => { if (!state.resuming && !state.submitted) state.draftSaved = false; });
 
   /* ---------------- Init ---------------- */
   showStep(1);
@@ -970,7 +937,14 @@
     history.replaceState(null,'',location.pathname);
     if(parts.length===2) {
       state.caseRef=decodeURIComponent(parts[0]);state.accessToken=decodeURIComponent(parts[1]);state.resuming=true;state.draftSaved=true;state.signed=true;
-      showStep(6);refreshDocumentReview().catch(e=>{reviewStatus.textContent=e.message;});
+      submitBtn.disabled = true;
+      showStep(6);
+      caseFetch('/api/applications/'+encodeURIComponent(caseRefSlug())+'/document-review').then(async r => {
+        if (!r.ok) throw new Error('This return link could not be opened. Contact our team with your case reference.');
+        const data = await r.json(); state.route=data.route; state.fee=data.fee_amount;
+        payTotal.textContent='£'+state.fee; priceChipAmount.textContent='£'+state.fee;
+        submitBtn.disabled=false;
+      }).catch(e=>{submitStatus.textContent=e.message;});
     }
   }
 })();

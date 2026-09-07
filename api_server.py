@@ -87,7 +87,7 @@ import time
 import uuid
 from hmac import compare_digest
 from html import escape as html_escape
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, closing
 from typing import Optional
 
 import requests
@@ -243,7 +243,7 @@ _verification_lock = _payment_lock
 
 
 def deliver_pending_emails():
-    with _email_lock, sqlite3.connect(DB_PATH) as con:
+    with _email_lock, closing(sqlite3.connect(DB_PATH)) as con, con:
         pending = con.execute("SELECT message_key,recipient,subject,body,kind FROM notification_outbox WHERE accepted=0 LIMIT 20").fetchall()
     for key, recipient, subject, body, kind in pending:
         _deliver_outbox_email(key)
@@ -251,12 +251,12 @@ def deliver_pending_emails():
 
 def _deliver_outbox_email(key):
     with _email_lock:
-        with sqlite3.connect(DB_PATH) as con:
+        with closing(sqlite3.connect(DB_PATH)) as con, con:
             row = con.execute("SELECT recipient,subject,body,kind,accepted FROM notification_outbox WHERE message_key=?", [key]).fetchone()
         if not row or row[4]:
             return bool(row)
         accepted = _brevo_deliver(*row[:4])
-        with sqlite3.connect(DB_PATH) as con:
+        with closing(sqlite3.connect(DB_PATH)) as con, con:
             con.execute("UPDATE notification_outbox SET accepted=?, attempts=attempts+1, body=CASE WHEN ? THEN '' ELSE body END WHERE message_key=?", [int(accepted),int(accepted),key])
         return accepted
 
@@ -264,14 +264,14 @@ def _deliver_outbox_email(key):
 def _brevo_send(to_email: str, subject: str, html: str, kind: str = "Notification") -> bool:
     # Persist before attempting delivery so transient outages survive restarts.
     key = hashlib.sha256(json.dumps([to_email,subject,html,kind],ensure_ascii=False).encode()).hexdigest()
-    with _email_lock, sqlite3.connect(DB_PATH) as con:
+    with _email_lock, closing(sqlite3.connect(DB_PATH)) as con, con:
         con.execute("INSERT OR IGNORE INTO notification_outbox(message_key,recipient,subject,body,kind) VALUES (?,?,?,?,?)", [key,to_email,subject,html,kind])
     return _deliver_outbox_email(key)
 
 
 def deliver_trustid_notifications():
     # Durable outbox: pending alerts survive restarts; one worker sends them.
-    with sqlite3.connect(DB_PATH) as con:
+    with closing(sqlite3.connect(DB_PATH)) as con, con:
         pending = con.execute("SELECT container_id, case_ref FROM trustid_result_notifications WHERE sent=0 LIMIT 20").fetchall()
         for container_id, case_ref in pending:
             if send_notification_email(
@@ -1378,7 +1378,7 @@ def trustid_result_webhook(case_ref: str, payload: dict, callback_token: Optiona
     if storage.get("ClientApplicationReference") not in (None, case_ref):
         raise HTTPException(400, "Callback reference mismatch")
     # A completed result may pass or fail. Never mark identity verified here.
-    with sqlite3.connect(DB_PATH) as con:
+    with closing(sqlite3.connect(DB_PATH)) as con, con:
         inserted = con.execute("INSERT OR IGNORE INTO trustid_result_notifications(container_id,case_ref) VALUES (?,?)", [container_id,case_ref]).rowcount
         if inserted:
             con.execute("UPDATE applications SET verification_status='ready_for_review', verification_notes=?, updated_at=? WHERE case_ref=?",

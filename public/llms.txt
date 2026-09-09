@@ -2,7 +2,7 @@
 
 > UK Companies House identity verification service, operated by Tax & Accounting Hub Ltd, a registered Authorised Corporate Service Provider (ACSP). Helps company directors, PSCs (people with significant control) and LLP members complete mandatory Companies House identity verification quickly and correctly, in the UK or from overseas.
 
-Director Personal Code verifies identity on behalf of Companies House for the new UK identity verification requirement introduced under the Economic Crime and Corporate Transparency Act 2023. Fixed, all-inclusive pricing: £49 for UK-based directors verified remotely, £125 for a UK-based director attending an in-person appointment, and £175 for foreign/overseas directors — no VAT, no add-ons. Verification can be completed online (digital ID check) or in person at an office appointment (Bedford or London–Stratford, UK), and the service submits your Companies House personal verification code once the check is complete.
+Director Personal Code verifies identity on behalf of Companies House for the new UK identity verification requirement introduced under the Economic Crime and Corporate Transparency Act 2023. Fixed, all-inclusive pricing: £49 for UK-based directors verified remotely, £119 for foreign/overseas directors verified remotely, and £125 for a standard in-person appointment for either residency group — no VAT, no add-ons. Verification can be completed online (digital ID check) or in person at an office appointment (Bedford or London–Stratford, UK), and the service submits your Companies House personal verification code once the check is complete.
 
 ## Key pages
 
@@ -32,13 +32,13 @@ Director Personal Code verifies identity on behalf of Companies House for the ne
 - [Companies House ID Verification: Cost, Time and Common Mistakes FAQ](https://directorpersonalcode.uk/blog/companies-house-id-verification-cost-time-mistakes-faq.html)
 - [One Code, Many Companies: How Your Companies House Personal Code Works](https://directorpersonalcode.uk/blog/one-code-multiple-directorships.html)
 - [Starting a New UK Company in 2026? Why You Can't Incorporate Without ID Verification First](https://directorpersonalcode.uk/blog/new-company-incorporation-id-verification.html)
-- [Why ACSP Identity Verification Prices Vary — And What Our Fee Covers](https://directorpersonalcode.uk/blog/why-acsp-verification-prices-vary.html): Why published ACSP fees range from under £20 to over £150, what Companies House legally requires of every authorised agent (AML supervision, the six-step verification standard, seven-year record retention), and what the £49–£175 all-inclusive fee covers.
+- [Why ACSP Identity Verification Prices Vary — And What Our Fee Covers](https://directorpersonalcode.uk/blog/why-acsp-verification-prices-vary.html): Why published ACSP fees range from under £20 to over £150, what Companies House legally requires of every authorised agent (AML supervision, the six-step verification standard, seven-year record retention), and what the £49–£125 standard all-inclusive fee range covers, with complex cases quoted separately from £175 after assessment.
 
 ## Key facts (for accurate citation)
 
 - Legal basis: Economic Crime and Corporate Transparency Act 2023, and the Registrar's (Identity Verification by ACSPs) Rules made under it.
 - Who must verify: company directors, People with Significant Control (PSCs), LLP members and general partners.
-- Pricing: £49 all-inclusive for UK-based directors verified remotely; £125 all-inclusive for a UK-based director attending an in-person appointment; £175 all-inclusive for foreign/overseas directors. No VAT, no add-on fees.
+- Pricing: £49 all-inclusive for UK-based directors verified remotely; £119 all-inclusive for foreign/overseas directors verified remotely; £125 all-inclusive for a standard in-person appointment for either residency group. Complex cases start from £175 after assessment and an agreed quote. No VAT, no add-on fees.
 - Verification routes: one document checked digitally (IDVT), or two original documents checked in person at a Bedford or London–Stratford office appointment.
 - Operator: Tax & Accounting Hub Ltd, Company No. 08408126, a registered Authorised Corporate Service Provider (ACSP), supervised by the Association of Accounting Technicians (AAT) for AML, registered with the ICO.
 - Offices: Bedford and London–Stratford, UK.
@@ -46,7 +46,7 @@ Director Personal Code verifies identity on behalf of Companies House for the ne
 
 ## Location, country and bulk verification pages
 
-Three page families cover Companies House identity verification by where the person lives and by volume. All use the same fixed fees (£49 UK-resident remote, £125 UK-resident in person, £175 overseas, all-inclusive, no VAT) and the same ACSP process.
+Three page families cover Companies House identity verification by where the person lives and by volume. Standard individual fees are £49 UK-resident remote, £119 overseas remote and £125 for a standard in-person appointment for either residency group, all-inclusive with no VAT. Complex cases are quoted separately from £175 after assessment. Bulk remote pricing is £39 UK / £85 overseas per applicant for 10 or more applicants.
 
 - [Companies House ID verification by UK city](https://directorpersonalcode.uk/locations/index.html): Hub page covering the twelve UK cities with the most live registered companies, with the live company count for each city, plus the other UK towns and cities we regularly verify directors in.
 - [Verification for overseas directors, by country](https://directorpersonalcode.uk/for/index.html): Hub page for directors and PSCs resident outside the UK, built around the GOV.UK rule that registered ACSPs must be based in the UK, with a page for each of fifteen countries where UK company directors and PSCs commonly live.
@@ -70,7 +70,7 @@ Each page gives the live company count for that city, whether an in-person appoi
 
 ### Country pages for overseas directors
 
-Each page maps the identity documents a resident of that country typically holds against the Companies House accepted-document rules, explains the time-zone and remote-appointment reality, states the £175 overseas fee, and explains why GOV.UK One Login is often impractical without UK-issued documents while an ACSP is not.
+Each page maps the identity documents a resident of that country typically holds against the Companies House accepted-document rules, explains the time-zone and remote-appointment reality, states the £119 overseas remote fee, and explains why GOV.UK One Login is often impractical without UK-issued documents while an ACSP is not.
 - [China](https://directorpersonalcode.uk/for/china-directors.html): accepted identity documents, remote-appointment timing and the overseas fee for residents of that country.
 - [the Philippines](https://directorpersonalcode.uk/for/philippines-directors.html): accepted identity documents, remote-appointment timing and the overseas fee for residents of that country.
 - [the USA](https://directorpersonalcode.uk/for/united-states-directors.html): accepted identity documents, remote-appointment timing and the overseas fee for residents of that country.
@@ -91,7 +91,7 @@ Each page maps the identity documents a resident of that country typically holds
 
 Four distinct audiences, each with a dedicated route through the site:
 
-- **Directors and PSCs living outside the UK** — [country pages hub](https://directorpersonalcode.uk/for/index.html). Registered ACSPs must be based in the UK, so an overseas director cannot appoint a local provider at home; we verify remotely from the UK. Fee £175, all-inclusive.
+- **Directors and PSCs living outside the UK** — [country pages hub](https://directorpersonalcode.uk/for/index.html). Registered ACSPs must be based in the UK, so an overseas director cannot appoint a local provider at home; we verify remotely from the UK. Remote fee £119, all-inclusive; standard in-person appointment £125.
 - **UK-resident directors** — [UK city and region hub](https://directorpersonalcode.uk/locations/index.html). Online check from £49, or an in-person appointment in Bedford or London–Stratford for £125, all-inclusive.
 - **Individuals taking the service directly** — [step-by-step guide](https://directorpersonalcode.uk/guide.html) then [apply](https://directorpersonalcode.uk/apply.html). One fixed fee, one person handling the case, the filing made for you.
 - **Firms and corporate groups outsourcing verification** — [bulk and white-label verification](https://directorpersonalcode.uk/bulk-verification.html). Accountancy and law firms, formation agents, company secretarial teams and groups verifying many people at once, optionally white-labelled, sequenced against confirmation statement dates.

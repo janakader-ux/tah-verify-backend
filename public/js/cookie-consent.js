@@ -10,6 +10,7 @@
         strictly necessary cookie: it exists only to honour the user's dismissal.
    If neither is writable the notice degrades to the previous per-page behaviour. */
 (function () {
+  if (/^G-[A-Z0-9]+$/.test(window.DPC_GA4_ID || '') && location.hostname === 'directorpersonalcode.uk') return;
   const KEY = 'dpc_cookie_ack';
   const VALUE = '1';
   const MAX_AGE = 60 * 60 * 24 * 365; // 12 months

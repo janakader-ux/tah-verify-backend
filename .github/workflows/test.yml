@@ -36,4 +36,5 @@ jobs:
           python scripts/build_qa_preview.py
           python scripts/tests/test_static.py
           node --check public/js/apply.js
-          node --test scripts/tests/test_frontend.cjs
+          node --test scripts/tests/test_frontend.cjs scripts/tests/test_analytics.cjs
+          python scripts/tests/test_enquiries.py

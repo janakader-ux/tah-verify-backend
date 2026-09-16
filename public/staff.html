@@ -232,7 +232,7 @@
     return html;
   }
 
-  const enquiriesButton=document.createElement('button');enquiriesButton.textContent='View bulk / visit enquiries';enquiriesButton.className='action-btn';document.getElementById('detailOverlay').before(enquiriesButton);
+  const enquiriesButton=document.createElement('button');enquiriesButton.textContent='View all enquiries';enquiriesButton.className='action-btn';document.getElementById('detailOverlay').before(enquiriesButton);
   enquiriesButton.addEventListener('click',async()=>{const area=document.getElementById('detailBody');document.getElementById('detailOverlay').hidden=false;document.getElementById('detailTitle').textContent='Service enquiries';area.textContent='Loading…';try{const r=await authedFetch('/api/staff/enquiries');if(!r.ok)throw new Error('Sign in before viewing enquiries.');const rows=await r.json();area.textContent=rows.length?rows.map(x=>Object.entries(x).map(([k,v])=>k+': '+v).join('\n')).join('\n\n'):'No enquiries yet.';area.style.whiteSpace='pre-wrap';}catch(e){area.textContent=e.message;}});
   // Every applicant-controlled field (case_ref, name, email, created_at is
   // server-generated so lower risk but escaped anyway) is HTML-escaped before

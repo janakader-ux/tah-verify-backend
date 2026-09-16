@@ -1527,11 +1527,13 @@ class EnquiryIn(BaseModel):
     overseas_count: int = 0
     location: str = ''
     notes: str = ''
+    website: str = ''  # Honeypot: hidden from human applicants.
 
 @app.post('/api/enquiries',status_code=201)
 def create_enquiry(body:EnquiryIn,request:Request):
     import re
-    if body.service not in ('bulk','visit','complex'):raise HTTPException(400,'Choose a service.')
+    if body.website: raise HTTPException(400, 'Unable to submit this enquiry.')
+    if body.service not in ('general','bulk','visit','complex'):raise HTTPException(400,'Choose a service.')
     if not 1<=len(body.name.strip())<=150 or not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+',body.email) or len(body.email)>254:
         raise HTTPException(400,'Enter your name and a valid email address.')
     if not 0<=body.uk_count<=10000 or not 0<=body.overseas_count<=10000 or len(body.notes)>2000 or len(body.location)>300:
@@ -1545,7 +1547,7 @@ def create_enquiry(body:EnquiryIn,request:Request):
         con.execute('CREATE TABLE IF NOT EXISTS service_enquiries (reference TEXT PRIMARY KEY,payload TEXT,indicative_total REAL,created REAL)')
         con.execute('INSERT INTO service_enquiries VALUES (?,?,?,?)',(reference,body.model_dump_json(),indicative,time.time()))
     sent=send_notification_email('Service enquiry: '+reference,{'Reference':reference,**body.model_dump(),'Indicative standard bulk total':indicative or 'Quote required'},'Please confirm scope, pricing and appointment availability. No payment has been taken.')
-    return {'reference':reference,'indicative_total':indicative,'message':'Enquiry saved. We will confirm scope and pricing before booking. No payment has been taken.','notification_sent':sent}
+    return {'reference':reference,'indicative_total':indicative,'message':('Thank you. Your enquiry has been saved for our team. No payment has been taken.' if body.service == 'general' else 'Enquiry saved. We will confirm scope and pricing before booking. No payment has been taken.'),'notification_sent':sent}
 
 @app.get('/api/staff/enquiries')
 def list_enquiries(passcode:Optional[str]=Depends(staff_passcode_supplied)):

@@ -80,7 +80,13 @@
 
   /* ---------------- Navigation ---------------- */
 
+  function track(name, params, unique) {
+    try { window.DPCAnalytics?.event(name, params, unique); } catch (_) {}
+  }
+
   function showStep(n) {
+    track('application_step', {step: n}, true);
+    if (n === 2) track('application_start', {}, true);
     steps.forEach((s) => {
       s.classList.toggle('is-active', Number(s.dataset.stepPanel) === n);
     });
@@ -597,9 +603,11 @@
       if (!submittedRes.ok) throw new Error('Submission could not be confirmed');
 
       state.submitted = true;
+      track('application_submitted', {}, true);
       submitStatus.textContent = 'Application submitted. Taking you to payment…';
       showStep(7);
     } catch (err) {
+      track('application_error', {error_stage: 'submission'});
       submitStatus.textContent = "We couldn't submit your application just now — please check your connection and try again, or email info@taxandaccountinghub.com directly quoting case " + state.caseRef + ".";
       submitStatus.classList.add('is-error');
       submitBtn.disabled = false;
@@ -649,12 +657,14 @@
       showPayLink();
       startPaymentPolling();
     } catch (err) {
+      track('application_error', {error_stage: 'checkout'});
       setPayStatus('Your secure payment link could not be prepared. Try preparing the payment link again or contact our team; please do not make an alternative payment yet.', true);
       retryPaymentBtn.hidden=false;
     }
   }
 
   function showPayLink() {
+    track('begin_checkout', {}, true);
     setPayStatus('Your secure card payment link is ready.');
     payOnlineBtn.href = state.paymentUrl;
     payOnlineBtn.hidden = false;
@@ -663,6 +673,7 @@
   }
 
   function showPaidState() {
+    track('payment_confirmed', {}, true);
     retryPaymentBtn.hidden=true;
     setPayStatus('');
     payOnlineBtn.hidden = true;

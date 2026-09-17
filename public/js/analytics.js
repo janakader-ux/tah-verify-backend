@@ -41,6 +41,19 @@
     if (query.get('utm_source') === 'google' && query.get('utm_medium') === 'organic' && /^gbp_/.test(query.get('utm_campaign') || '')) {
       config.campaign_source = 'google'; config.campaign_medium = 'organic'; config.campaign_name = 'gbp_dpc';
     }
+    const campaignSources = {linkedin: 'organic', partner: 'referral'};
+    const source = query.get('utm_source');
+    if (Object.prototype.hasOwnProperty.call(campaignSources, source) &&
+        query.get('utm_medium') === campaignSources[source] &&
+        query.get('utm_campaign') === 'dpc_14day_sep2026') {
+      config.campaign_source = source;
+      config.campaign_medium = campaignSources[source];
+      config.campaign_name = 'dpc_14day_sep2026';
+      const content = query.get('utm_content') || '';
+      if (/^(?:post_(?:0[1-9]|1[0-2])|partner_(?:0[1-9]|[12][0-9]|30))$/.test(content)) {
+        config.campaign_content = content;
+      }
+    }
     window.gtag('config', id, config);
     event('page_view', {}, true);
     const script = document.createElement('script');

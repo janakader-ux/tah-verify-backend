@@ -68,10 +68,15 @@ class ReviewTests(unittest.TestCase):
 
     def test_bulk_minimum_and_server_calculation(self):
         # Separate DB connection after lifespan closure from the preceding test.
-        with patch.object(api,'send_notification_email',return_value=True),TestClient(api.app) as c:
+        with patch.object(api,'send_notification_email',return_value=True),patch.object(review,'rate_limit'),TestClient(api.app) as c:
             body={'name':'Test Buyer','email':'buyer@example.invalid','service':'bulk','uk_count':5,'overseas_count':4}
-            self.assertEqual(c.post('/api/enquiries',json=body).status_code,400)
-            body['overseas_count']=5;body['indicative_total']=1
-            r=c.post('/api/enquiries',json=body);self.assertEqual(r.status_code,201);self.assertEqual(r.json()['indicative_total'],620)
+            # Client-provided totals must never override server pricing.
+            body['indicative_total']=1
+            for uk, overseas, expected in [(1,0,49),(0,1,119),(5,4,721),(5,5,840),(24,0,1176),(25,0,975),(0,9,1071),(0,10,850),(24,9,2247),(25,9,2046),(24,10,2026),(25,10,1825)]:
+                with self.subTest(uk=uk, overseas=overseas):
+                    r=c.post('/api/enquiries',json={**body,'uk_count':uk,'overseas_count':overseas})
+                    self.assertEqual(r.status_code,201);self.assertEqual(r.json()['indicative_total'],expected)
+            self.assertEqual(c.post('/api/enquiries',json={**body,'uk_count':0,'overseas_count':0}).status_code,400)
+
 
 if __name__=='__main__':unittest.main()

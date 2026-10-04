@@ -788,7 +788,7 @@ def config():
     hardcode office addresses / portal links in two places."""
     return {
         "pricing": PRICING,
-        "bulk_pricing": {"uk":39,"overseas":85,"minimum":10},
+        "bulk_pricing": {"uk":39,"uk_minimum":25,"uk_standard":49,"overseas":85,"overseas_minimum":10,"overseas_standard":119},
         "document_review": {"available":False,"ai_available":False,"required":False},
         "trustid_guest_link_portal_url": trustid_client.TRUSTID_PORTAL_GUEST_LINK_URL,
         "offices": {
@@ -1538,11 +1538,11 @@ def create_enquiry(body:EnquiryIn,request:Request):
         raise HTTPException(400,'Enter your name and a valid email address.')
     if not 0<=body.uk_count<=10000 or not 0<=body.overseas_count<=10000 or len(body.notes)>2000 or len(body.location)>300:
         raise HTTPException(400,'Check the application counts and message length.')
-    if body.service=='bulk' and body.uk_count+body.overseas_count<10:raise HTTPException(400,'Bulk pricing requires at least 10 applicants in total; mixed groups qualify.')
+    if body.service=='bulk' and body.uk_count+body.overseas_count<1:raise HTTPException(400,'Enter at least one applicant.')
     address=request.client.host if request.client else 'unknown'
     document_review.rate_limit(DB_PATH,'enquiry:'+hashlib.sha256(address.encode()).hexdigest(),5)
     reference='ENQ-'+uuid.uuid4().hex[:12].upper()
-    indicative=(39*body.uk_count+85*body.overseas_count) if body.service=='bulk' else None
+    indicative=(body.uk_count*(39 if body.uk_count>=25 else 49)+body.overseas_count*(85 if body.overseas_count>=10 else 119)) if body.service=='bulk' else None
     with document_review.connect(DB_PATH) as con:
         con.execute('CREATE TABLE IF NOT EXISTS service_enquiries (reference TEXT PRIMARY KEY,payload TEXT,indicative_total REAL,created REAL)')
         con.execute('INSERT INTO service_enquiries VALUES (?,?,?,?)',(reference,body.model_dump_json(),indicative,time.time()))

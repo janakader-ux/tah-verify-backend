@@ -8,7 +8,7 @@
     if (!estimate) return;
     const u = Number(form.elements.uk_count?.value || 0), o = Number(form.elements.overseas_count?.value || 0);
     estimate.textContent = form.elements.service.value === 'bulk'
-      ? (u + o < 10 ? 'Minimum 10 applicants in total.' : 'Indicative standard remote total: £' + (u * 39 + o * 85).toLocaleString('en-GB') + '. Scope and any larger-volume pricing will be confirmed by email.')
+      ? (u + o === 0 ? 'Enter the number of applicants.' : 'Indicative remote total: £' + (u * (u >= 25 ? 39 : 49) + o * (o >= 10 ? 85 : 119)).toLocaleString('en-GB') + '. £39 applies to 25+ UK/EU chip passports, £85 to 10+ overseas applicants; smaller numbers are at the standard price. Final pricing confirmed by email.')
       : 'We will agree a quote before booking.';
   }
   form.addEventListener('input', totals); totals();

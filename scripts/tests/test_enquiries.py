@@ -16,5 +16,7 @@ class Enquiries(unittest.TestCase):
    self.assertTrue(any(x['reference']==r.json()['reference'] for x in saved))
    self.assertEqual(c.post('/api/enquiries',json={**data,'website':'spam'}).status_code,400)
    self.assertEqual(c.post('/api/enquiries',json={**data,'email':'invalid'}).status_code,400)
-   self.assertEqual(c.post('/api/enquiries',json={**data,'service':'bulk','uk_count':9}).status_code,400)
+   self.assertEqual(c.post('/api/enquiries',json={**data,'service':'bulk','uk_count':0}).status_code,400)
+   r=c.post('/api/enquiries',json={**data,'service':'bulk','uk_count':9})
+   self.assertEqual(r.status_code,201);self.assertEqual(r.json()['indicative_total'],441)
 if __name__=='__main__':unittest.main()

@@ -4,6 +4,10 @@
 
 Director Personal Code verifies identity on behalf of Companies House for the new UK identity verification requirement introduced under the Economic Crime and Corporate Transparency Act 2023. Fixed, all-inclusive pricing: £49 for UK-based directors verified remotely, £119 for foreign/overseas directors verified remotely, and £125 for a standard in-person appointment for either residency group — no VAT, no add-ons. Verification can be completed online (digital ID check) or in person at an office appointment (Bedford or London–Stratford, UK), and the service submits your Companies House personal verification code once the check is complete.
 
+## Current practical help
+
+- [Companies House Personal Code Not Working? What to Check in 2026](https://directorpersonalcode.uk/blog/companies-house-personal-code-not-working.html): Missing codes, rejected details and when to seek ACSP help. Checked 16 November 2026.
+
 ## Key pages
 
 - [Home](https://directorpersonalcode.uk/): Overview of the Companies House ID verification service, pricing and process.

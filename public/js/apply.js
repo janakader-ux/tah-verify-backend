@@ -942,6 +942,10 @@
   form.addEventListener('input', () => { if (!state.resuming && !state.submitted) state.draftSaved = false; });
 
   /* ---------------- Init ---------------- */
+  document.addEventListener('dpc:analytics-ready', () => {
+    track('application_step', {step: state.step}, true);
+    if (state.step === 2) track('application_start', {}, true);
+  });
   showStep(1);
   if (location.hash.startsWith('#resume=')) {
     const parts=location.hash.slice(8).split('~');

@@ -7,7 +7,7 @@
   const key = 'dpc_analytics_consent_v1';
   let allowed = false, loaded = false;
   const once = new Set();
-  const events = new Set(['page_view', 'application_start', 'application_step', 'application_submitted', 'begin_checkout', 'payment_confirmed', 'generate_lead', 'contact_click', 'application_error']);
+  const events = new Set(['page_view', 'application_start', 'application_step', 'application_submitted', 'begin_checkout', 'payment_confirmed', 'generate_lead', 'contact_click', 'application_error', 'enquiry_start', 'enquiry_error']);
   function choice() {
     try { const v = JSON.parse(localStorage.getItem(key)); return v && v.expires > Date.now() ? v.value : null; } catch (_) { return null; }
   }
@@ -22,8 +22,9 @@
     // Explicit allowlist: arbitrary input data can never enter the payload.
     if (params && Number.isInteger(params.step) && params.step >= 1 && params.step <= 9) safe.step = params.step;
     if (params && ['phone', 'email', 'enquiry', 'apply'].includes(params.contact_method)) safe.contact_method = params.contact_method;
-    if (params && ['submission', 'checkout'].includes(params.error_stage)) safe.error_stage = params.error_stage;
-    const token = name + ':' + (safe.step || '');
+    if (params && ['submission', 'checkout', 'validation', 'network', 'server', 'response'].includes(params.error_stage)) safe.error_stage = params.error_stage;
+    if (params && ['contact', 'specialist_enquiry'].includes(params.form_type)) safe.form_type = params.form_type;
+    const token = [name, safe.step || '', safe.form_type || '', safe.error_stage || ''].join(':');
     if (unique && once.has(token)) return;
     if (unique) once.add(token);
     window.gtag('event', name, Object.assign(safe, {send_to: id}));
@@ -56,6 +57,10 @@
     }
     window.gtag('config', id, config);
     event('page_view', {}, true);
+    // Report the current application screen when consent is granted after page load.
+    if (typeof document.dispatchEvent === 'function' && typeof CustomEvent === 'function') {
+      document.dispatchEvent(new CustomEvent('dpc:analytics-ready'));
+    }
     const script = document.createElement('script');
     script.async = true; script.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
     document.head.appendChild(script);

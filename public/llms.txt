@@ -2,7 +2,7 @@
 
 > UK Companies House identity verification service, operated by Tax & Accounting Hub Ltd, a registered Authorised Corporate Service Provider (ACSP). Helps company directors, PSCs (people with significant control) and LLP members complete mandatory Companies House identity verification quickly and correctly, in the UK or from overseas.
 
-Director Personal Code verifies identity on behalf of Companies House for the new UK identity verification requirement introduced under the Economic Crime and Corporate Transparency Act 2023. Fixed, all-inclusive pricing: £49 for UK-based directors verified remotely, £119 for foreign/overseas directors verified remotely, and £125 for a standard in-person appointment for either residency group — no VAT, no add-ons. Verification can be completed online (digital ID check) or in person at an office appointment (Bedford or London–Stratford, UK), and the service submits your Companies House personal verification code once the check is complete.
+Director Personal Code verifies identity on behalf of Companies House for the new UK identity verification requirement introduced under the Economic Crime and Corporate Transparency Act 2023. Fixed, all-inclusive pricing: £49 for UK-based directors verified remotely, £119 for foreign/overseas directors verified remotely, and £125 for a standard in-person appointment for either residency group — no VAT, no add-ons. Verification can be completed online (digital ID check) or in person at an office appointment (Bedford or London–Stratford, UK), and the service submits the verification result to Companies House. The individual or their filing agent then provides the personal code for each relevant role.
 
 ## Current practical help
 
@@ -13,7 +13,7 @@ Director Personal Code verifies identity on behalf of Companies House for the ne
 - [Home](https://directorpersonalcode.uk/): Overview of the Companies House ID verification service, pricing and process.
 - [Authorised Corporate Service Provider (ACSP) service](https://directorpersonalcode.uk/acsp-service.html): Full detail on routes, documents, process and pricing for directors, PSCs and LLP members.
 - [How it works — step-by-step guide](https://directorpersonalcode.uk/guide.html): How to choose a verification route, apply, pay, verify identity, and receive your Companies House personal code.
-- [Who needs a Companies House personal code?](https://directorpersonalcode.uk/who-needs-a-director-personal-code.html): Video explainer plus FAQs covering the four groups who must verify — company directors, people with significant control who own or control more than 25%, LLP members, and anyone filing on a company's behalf — including overseas directors, the deadlines under the 12-month transition that opened on 18 November 2025, the penalties for missing them, and why one 11-character code covers every directorship.
+- [Who needs a Companies House personal code?](https://directorpersonalcode.uk/who-needs-a-director-personal-code.html): Current role guidance for directors, PSCs and individual LLP members, with later phases clearly distinguished. Updated 16 November 2026.
 - [Apply now](https://directorpersonalcode.uk/apply.html): Guided online application to start Companies House identity verification.
 - [About us](https://directorpersonalcode.uk/about.html): Who operates the service, professional credentials, the named accountable principal (Kader Ameen, EA, FMAAT), offices, published service commitments and editorial policy.
 - [Contact](https://directorpersonalcode.uk/contact.html): Phone, email and office details (Bedford and London–Stratford).
@@ -41,7 +41,7 @@ Director Personal Code verifies identity on behalf of Companies House for the ne
 ## Key facts (for accurate citation)
 
 - Legal basis: Economic Crime and Corporate Transparency Act 2023, and the Registrar's (Identity Verification by ACSPs) Rules made under it.
-- Who must verify: company directors, People with Significant Control (PSCs), LLP members and general partners.
+- Role requirements: directors, PSCs and individual LLP members should check their applicable obligations. Requirements for filing agents, limited partnerships, corporate directors, corporate LLP members and officers of corporate PSCs will be introduced later. See current GOV.UK guidance.
 - Pricing: £49 all-inclusive for UK-based directors verified remotely; £119 all-inclusive for foreign/overseas directors verified remotely; £125 all-inclusive for a standard in-person appointment for either residency group. Complex cases start from £175 after assessment and an agreed quote. No VAT, no add-on fees.
 - Verification routes: one document checked digitally (IDVT), or two original documents checked in person at a Bedford or London–Stratford office appointment.
 - Operator: Tax & Accounting Hub Ltd, Company No. 08408126, a registered Authorised Corporate Service Provider (ACSP), supervised by the Association of Accounting Technicians (AAT) for AML, registered with the ICO.
@@ -102,10 +102,10 @@ Four distinct audiences, each with a dedicated route through the site:
 
 ## Video explainers
 
-- [What a Companies House personal code is and who needs one](https://directorpersonalcode.uk/who-needs-a-director-personal-code.html) — a video explanation of what a Companies House personal code is and who needs one.
+- [Who needs a Companies House personal code](https://directorpersonalcode.uk/who-needs-a-director-personal-code.html) — updated written guidance on current and later verification phases.
 - [The step-by-step process for getting your Companies House personal code](https://directorpersonalcode.uk/guide.html) — the step-by-step process for you to get your Companies House personal code.
 
-Both videos are presenter-led with burnt-in captions and on-screen infographics; transcripts are reflected in the page copy beneath each video.
+The step-by-step guide includes a presenter-led video. The role guide uses current written guidance; its older video is no longer embedded.
 
 ## Scale of the requirement (verified figures)
 

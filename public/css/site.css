@@ -852,3 +852,19 @@ h4 {
 .enquiry-form label { display:grid; gap:0.4rem; font-weight:600; }
 .enquiry-form input,.enquiry-form textarea { width:100%; box-sizing:border-box; padding:0.75rem; border:1px solid var(--color-text-muted); border-radius:6px; color:var(--color-text); background:var(--color-bg); font:inherit; }
 .enquiry-form p { font-size:0.9rem; }
+
+/* Keep the brand and primary actions readable on narrow phones. */
+@media (max-width: 600px) {
+  .header__inner { gap: 8px; padding-block: 12px; }
+  .header .brand { flex: 1 1 auto; min-width: 0; gap: 8px; }
+  .header .brand__name { font-size: 14px; line-height: 1.2; }
+  .header .brand__sub { display: none; }
+  .header .brand .dpc-brand-logo { width: 40px; height: 40px; }
+  .header__actions { flex: 0 0 auto; gap: 2px; }
+  .header__actions .theme-toggle { width: 32px; height: 40px; }
+  .header__actions .apply-cta .btn { padding-inline: 10px; font-size: 12px; white-space: nowrap; }
+  .header__actions .menu-toggle { width: 36px; }
+}
+
+.service-intake-pricing { margin-top: 16px; }
+.service-intake-actions { display:flex; flex-wrap:wrap; gap:12px; margin-block:16px; }
